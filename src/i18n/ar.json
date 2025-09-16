@@ -1,0 +1,131 @@
+{
+  "register": {
+    "title": "إنشاء حساب جديد",
+    "subtitle": "انضم إلى مجتمعنا",
+    "fullName": "الاسم الكامل",
+    "fullNamePlaceholder": "أدخل اسمك الكامل",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "أدخل بريدك الإلكتروني",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
+    "country": "الدولة",
+    "countryPlaceholder": "اختر دولتك",
+    "phoneNumber": "رقم الهاتف",
+    "phoneNumberPlaceholder": "أدخل رقم هاتفك",
+    "submit": "تسجيل",
+    "alreadyHaveAccount": "هل لديك حساب؟",
+    "loginHere": "تسجيل الدخول هنا"
+  },
+
+  "header": {
+    "joinUs": "انضم إلينا",
+    "home": "الرئيسية",
+    "products": "المنتجات",
+    "contactUs": "اتصل بنا",
+    "aboutUs": "من نحن",
+    "login": "تسجيل الدخول"
+  },
+
+  
+  "home": {
+    "joinUs": "انضم إلينا",
+    "home": "الرئيسية",
+    "products": "المنتجات",
+    "contactUs": "اتصل بنا",
+    "aboutUs": "من نحن",
+    "login": "تسجيل الدخول"
+  },
+
+  "common": {
+    "login": {
+      "title": "تسجيل الدخول",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "rememberMe": "تذكرني",
+      "submit": "تسجيل الدخول",
+      "loggingIn": "جاري تسجيل الدخول...",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "register": {
+        "register": "إنشاء حساب جديد",
+        "title": "إنشاء حساب جديد",
+        "subtitle": "انضم إلى مجتمعنا",
+        "fullName": "الاسم الكامل",
+        "fullNamePlaceholder": "أدخل اسمك الكامل",
+        "email": "البريد الإلكتروني",
+        "emailPlaceholder": "أدخل بريدك الإلكتروني",
+        "password": "كلمة المرور",
+        "passwordPlaceholder": "أدخل كلمة المرور",
+        "confirmPassword": "تأكيد كلمة المرور",
+        "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
+        "country": "الدولة",
+        "countryPlaceholder": "اختر دولتك",
+        "phoneNumber": "رقم الهاتف",
+        "phoneNumberPlaceholder": "أدخل رقم هاتفك",
+        "submit": "تسجيل",
+        "alreadyHaveAccount": "هل لديك حساب؟",
+        "loginHere": "تسجيل الدخول هنا",
+        "validation": {
+          "fullNameRequired": "الاسم الكامل مطلوب",
+          "fullNameLength": "يجب أن يكون الاسم الكامل 3 أحرف على الأقل",
+          "fullNameInvalid": "يمكن أن يحتوي الاسم الكامل على أحرف ومسافات وشرطات وعلامات اقتباس فقط",
+          "emailRequired": "البريد الإلكتروني مطلوب",
+          "emailInvalid": "يرجى إدخال عنوان بريد إلكتروني صالح",
+          "passwordRequired": "كلمة المرور مطلوبة",
+          "passwordLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+          "passwordUppercase": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+          "passwordLowercase": "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+          "passwordNumber": "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل",
+          "passwordSpecial": "يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل (!@#$%^&*)",
+          "confirmPasswordRequired": "يرجى تأكيد كلمة المرور",
+          "confirmPasswordMatch": "كلمات المرور غير متطابقة",
+          "phoneRequired": "رقم الهاتف مطلوب",
+          "phoneInvalid": "يرجى إدخال رقم هاتف صالح مكون من 9 أرقام",
+          "countryRequired": "يرجى اختيار دولتك"
+        }
+      }
+    }
+  },
+
+  "menu": {
+    "dashboard": "لوحة التحكم",
+    "products": "المنتجات",
+    "brands": "العلامات التجارية",
+    "categories": "التصنيفات",
+    "inputs": "المدخلات",
+    "addresses": "العناوين",
+    "addresses_list": "قائمة العناوين",
+    "addresses_create": "إنشاء عنوان",
+    "addresses_manage": "إدارة العناوين",
+    "customers": "العملاء",
+    "orders": "الطلبات",
+    "analytics": "التحليلات",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "help": "المساعدة",
+    "logout": "تسجيل الخروج"
+  },
+
+  "login_required_favorite": "يجب تسجيل الدخول لإضافة المنتج إلى المفضلة",
+  "error": "خطأ",
+  "update_quantity_error": "فشل تحديث الكمية. يرجى المحاولة مرة أخرى.",
+  "max_quantity_reached": "تم الوصول إلى الحد الأقصى للكمية",
+  "min_quantity_reached": "تم الوصول إلى الحد الأدنى للكمية",
+  "warning": "تحذير",
+ "checkout": {
+  "quantityUpdated": "Quantity updated successfully",
+  "errorUpdatingQuantity": "Failed to update quantity",
+  "itemRemoved": "Item removed successfully",
+  "minimumQuantity": "Minimum quantity is 1",
+  "maxQuantity": "Maximum quantity is 99",
+  "unauthenticated": "يجب عليك تسجيل الدخول للوصول إلى هذه الصفحة. يرجى تسجيل الدخول والمحاولة مرة أخرى."
+
+},
+  "view-all-products": "عرض جميع المنتجات",
+  "unauthenticated": "يجب عليك تسجيل الدخول للوصول إلى هذه الصفحة. يرجى تسجيل الدخول والمحاولة مرة أخرى."
+}

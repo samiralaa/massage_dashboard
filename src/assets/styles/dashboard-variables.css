@@ -1,0 +1,32 @@
+:root {
+  /* Dashboard Layout */
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --footer-height: 60px;
+  
+  /* Dashboard Colors */
+  --sidebar-bg: var(--dark-brown);
+  --sidebar-text: var(--white-gold);
+  --sidebar-hover: var(--primary-gold);
+  --header-bg: var(--bg-primary);
+  --content-bg: #F5F7FA;
+  
+  /* Dashboard Components */
+  --card-header-bg: var(--white-gold);
+  --card-border: 1px solid var(--border-light);
+  --menu-item-height: 50px;
+  --menu-icon-size: 20px;
+  
+  /* Stats Card Colors */
+  --stat-card-1: linear-gradient(135deg, var(--primary-gold) 0%, var(--dark-gold) 100%);
+  --stat-card-2: linear-gradient(135deg, #36D1DC 0%, #5B86E5 100%);
+  --stat-card-3: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+  --stat-card-4: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  
+  /* Chart Colors */
+  --chart-color-1: var(--primary-gold);
+  --chart-color-2: var(--dark-gold);
+  --chart-color-3: var(--success);
+  --chart-color-4: var(--warning);
+  --chart-grid: var(--border-light);
+} 
