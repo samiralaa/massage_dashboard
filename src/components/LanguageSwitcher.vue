@@ -6,15 +6,13 @@
         :class="['lang-btn', { active: locale === 'en' }, 'text-uppercase text-center']"
         @click="switchLanguage('en')"
       >
-        <!-- <span class="lang-code">EN</span> -->
-        <span class="lang-name ">English</span>
+        <span class="lang-name">English</span>
       </a>
       <a 
         v-if="locale !== 'ar'"
         :class="['lang-btn', { active: locale === 'ar' }, 'text-uppercase text-center']"
         @click="switchLanguage('ar')"
       >
-        <!-- <span class="lang-code">ع</span> -->
         <span class="lang-name">العربية</span>
       </a>
     </div>
@@ -27,12 +25,12 @@ import { setDirection } from '../utils/theme'
 
 const { locale } = useI18n()
 
-  const switchLanguage = (lang) => {
-    const direction = lang === 'ar' ? 'rtl' : 'ltr'
-    setDirection(direction)
-    locale.value = lang
-    localStorage.setItem('lang', lang)
-  }
+const switchLanguage = (lang) => {
+  const direction = lang === 'ar' ? 'rtl' : 'ltr'
+  setDirection(direction)
+  locale.value = lang
+  localStorage.setItem('lang', lang)
+}
 </script>
 
 <style scoped>
@@ -42,82 +40,58 @@ const { locale } = useI18n()
 
 a.lang-btn {
   display: inline-block;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 5px 20px 5px 10px;
+  border: 1px solid #b9b9b9; /* رمادي فاتح زي الأيقونات */
+  padding: 6px 18px;
   text-decoration: none;
-  color: #fff;
-  width: 150px;
-  border-radius: 5px;
-  -webkit-transition: all 0.5s;
-  transition: all 0.5s;
+  color: #333; /* نص غامق قريب من الأسود */
+  background-color: #eae5df; /* نفس خلفية الـ nav */
+  border-radius: 6px;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
 
 a.lang-btn:hover {
-  background-color: #00000066;
-  border-color: #fff;
-  padding-left: 20px;
-  width: 130px;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  letter-spacing: 2px;
+  background-color: #d6d2cc; /* أغمق سنة عند hover */
+  border-color: #000;
+  color: #000;
+  letter-spacing: 1px;
   cursor: pointer;
+}
+
+a.lang-btn.active {
+  background-color: #fcba68; /* اللون البرتقالي للـ active */
+  border-color: #fcba68;
+  color: #000;
+  font-weight: bold;
 }
 
 a.lang-btn::after {
   content: "";
   display: inline-block;
-  width: 10px;
-  height: 100px;
+  width: 8px;
+  height: 100%;
   background-color: #fcba68;
   position: absolute;
-  top: 0px;
+  top: 0;
   left: -10px;
-  transition: left 0.5s;
+  transition: left 0.3s ease;
 }
 
 a.lang-btn:hover::after {
-  left: 0px;
-}
-
-
-.lang-code {
-  font-weight: bold;
-  font-size: 0.9em;
-  margin: 0 5px;
+  left: 0;
 }
 
 .lang-name {
   font-size: 0.9em;
 }
 
-.button-group a {
-  color: #fff;
-}
-@media (max-width: 576px ) {
+@media (max-width: 576px) {
   a.lang-btn {
-    width: 100px;
-  }
-  a.lang-btn:hover {
     width: 100%;
-    padding-left: 20px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
+    text-align: center;
+    padding: 6px 12px;
   }
-  a.lang-btn::after {
-    left: -10px;
-  }
-
-  .lang-code {
-    font-size: 0.8em;
-  }
-  .lang-name {
-    font-size: 0.8em;
-  }
-  .button-group a {
-    width: 100%;
-  }
-
 }
 </style>
