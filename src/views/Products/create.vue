@@ -139,10 +139,30 @@
               </span>
             </div>
 
-            <el-input 
-              v-model="form.attribute_values[attributeId]" 
-              placeholder="Enter value for this attribute" 
-            />
+            <div class="attribute-input-container">
+              <el-input 
+                v-model="form.attribute_values[attributeId]" 
+                placeholder="Enter value for this attribute" 
+                @input="updateAttributeValue(attributeId, $event)"
+              />
+              
+              <!-- Range slider for percentage values -->
+              <div 
+                v-if="isPercentageValue(form.attribute_values[attributeId])" 
+                class="gradient-control"
+              >
+                <label class="gradient-label">Gradient %:</label>
+                <input 
+                  type="range" 
+                  :value="getPercentageValue(form.attribute_values[attributeId])" 
+                  min="0" 
+                  max="100" 
+                  @input="updatePercentageValue(attributeId, $event.target.value)"
+                  class="gradient-range"
+                >
+                <span class="percent-display">{{ getPercentageValue(form.attribute_values[attributeId]) }}%</span>
+              </div>
+            </div>
           </div>
 
           <div v-if="form.attribute_ids.length === 0" class="no-attributes-message">
@@ -344,22 +364,90 @@ onMounted(() => {
   fetchBrands()
 })
 
+// Helper functions for gradient control
+const isPercentageValue = (value) => {
+  return typeof value === 'string' && value.includes('%')
+}
+
+const getPercentageValue = (value) => {
+  if (!value || !isPercentageValue(value)) return 0
+  return parseFloat(value.replace('%', '')) || 0
+}
+
+const updatePercentageValue = (attributeId, newValue) => {
+  form.value.attribute_values[attributeId] = `${newValue}%`
+}
+
+const updateAttributeValue = (attributeId, newValue) => {
+  form.value.attribute_values[attributeId] = newValue
+}
+
 const injectValueIntoIcon = (iconSvg, value) => {
   if (!iconSvg) return ''
   if (!value) return iconSvg
 
-  const closingTagIndex = iconSvg.lastIndexOf('</svg>')
+  // Check if value is a percentage
+  const isPercentage = typeof value === 'string' && value.includes('%')
+  const numericValue = isPercentage ? parseFloat(value.replace('%', '')) : parseFloat(value)
+  
+  let modifiedSvg = iconSvg
+  
+  // If it's a percentage value, create gradient effect
+  if (isPercentage && !isNaN(numericValue)) {
+    // Generate unique gradient ID
+    const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`
+    
+    // Calculate gradient offset (0-100% maps to 0-1)
+    const offset = Math.max(0, Math.min(1, numericValue / 100))
+    
+    // Find existing gradients or create new ones
+    const defsMatch = modifiedSvg.match(/<defs[^>]*>([\s\S]*?)<\/defs>/)
+    let gradientDef = `
+      <linearGradient id="${gradientId}" x1="0%" y1="100%" x2="0%" y2="0%" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#78D6F0"/>
+        <stop offset="${offset}" stop-color="#8D8D8D"/>
+      </linearGradient>
+    `
+    
+    if (defsMatch) {
+      // Add gradient to existing defs
+      modifiedSvg = modifiedSvg.replace(
+        defsMatch[0],
+        `<defs>${defsMatch[1]}${gradientDef}</defs>`
+      )
+    } else {
+      // Create new defs section
+      const svgTagMatch = modifiedSvg.match(/<svg[^>]*>/)
+      if (svgTagMatch) {
+        modifiedSvg = modifiedSvg.replace(
+          svgTagMatch[0],
+          `${svgTagMatch[0]}<defs>${gradientDef}</defs>`
+        )
+      }
+    }
+    
+    // Apply gradient to fill or stroke
+    if (modifiedSvg.includes('fill="')) {
+      modifiedSvg = modifiedSvg.replace(/fill="[^"]*"/g, `fill="url(#${gradientId})"`)
+    }
+    if (modifiedSvg.includes('stroke="')) {
+      modifiedSvg = modifiedSvg.replace(/stroke="[^"]*"/g, `stroke="url(#${gradientId})"`)
+    }
+  }
+  
+  // Add text overlay
+  const closingTagIndex = modifiedSvg.lastIndexOf('</svg>')
   if (closingTagIndex !== -1) {
     return (
-      iconSvg.substring(0, closingTagIndex) +
+      modifiedSvg.substring(0, closingTagIndex) +
       `<text x="50%" y="50%" font-size="10" font-weight="bold" 
         text-anchor="middle" dominant-baseline="middle" 
-        fill="currentColor">${value}</text>` +
-      iconSvg.substring(closingTagIndex)
+        fill="white" stroke="black" stroke-width="0.5">${value}</text>` +
+      modifiedSvg.substring(closingTagIndex)
     )
   }
 
-  return iconSvg
+  return modifiedSvg
 }
 </script>
 
