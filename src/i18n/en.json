@@ -114,6 +114,31 @@
   },
   "view-all-products": "View All Products",
   "unauthenticated": "You must be logged in to access this page. Please log in and try again.",
-  "login_required_favorite": "Login required to favorite product"
-
+  "login_required_favorite": "Login required to favorite product",
+  "products": {
+    "RemoveAmount": "Remove Amount",
+    "Needs-Amount": "Needs Amount",
+    "Amount-Info": "Amount Info",
+    "Discount-Value": "Discount Value",
+    "discountInfo": "Discount Info",
+    "removeDiscount": "Remove Discount",
+    "Attributes": "Attributes",
+    "AddAttribute": "Add Attribute",
+    "RemoveAttribute": "Remove Attribute",
+    "MainIngredients": "Main Ingredients",
+    "AddMainIngredient": "Add Main Ingredient",
+    "RemoveMainIngredient": "Remove Main Ingredient",
+    "Value": "Value",
+    "Current": "Current",
+    "FragranceNotes": "Fragrance Notes",
+    "AddFragranceNote": "Add Fragrance Note",
+    "RemoveFragranceNote": "Remove Fragrance Note",
+    "Gender": "Gender",
+    "Note": "Note",
+    "SelectGender": "Select Gender",
+    "SelectExistingMainIngredients": "Select Existing Main Ingredients",
+    "AttributeValues": "Attribute Values",
+    "PleaseSelectAttributesFirst": "Please select attributes first",
+    "CreateNewMainIngredient": "Create New Main Ingredient"
+  }
 }

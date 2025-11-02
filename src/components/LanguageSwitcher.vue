@@ -23,11 +23,11 @@
 import { useI18n } from 'vue-i18n'
 import { setDirection } from '../utils/theme'
 
-const { locale } = useI18n()
+const { locale, ...i18n } = useI18n()
 
 const switchLanguage = (lang) => {
   const direction = lang === 'ar' ? 'rtl' : 'ltr'
-  setDirection(direction)
+  setDirection(direction, i18n)
   locale.value = lang
   localStorage.setItem('lang', lang)
 }

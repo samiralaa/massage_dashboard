@@ -127,5 +127,34 @@
 
 },
   "view-all-products": "عرض جميع المنتجات",
-  "unauthenticated": "يجب عليك تسجيل الدخول للوصول إلى هذه الصفحة. يرجى تسجيل الدخول والمحاولة مرة أخرى."
+  "unauthenticated": "يجب عليك تسجيل الدخول للوصول إلى هذه الصفحة. يرجى تسجيل الدخول والمحاولة مرة أخرى.",
+  "products": {
+    "RemoveAmount": "إزالة الكمية",
+    "Needs-Amount": "يحتاج إلى كمية",
+    "Amount-Info": "معلومات الكمية",
+    "Discount-Value": "قيمة الخصم",
+    "discountInfo": "معلومات الخصم",
+    "removeDiscount": "إزالة الخصم",
+    "Attributes": "الخصائص",
+    "AddAttribute": "إضافة خاصية",
+    "RemoveAttribute": "إزالة خاصية",
+    "MainIngredients": "المكونات الأساسية",
+    "AddMainIngredient": "إضافة مكون أساسي",
+    "RemoveMainIngredient": "إزالة مكون أساسي",
+    "Value": "القيمة",
+    "Current": "الحالي",
+    "FragranceNotes": "الملاحظات العطرية",
+    "AddFragranceNote": "إضافة ملاحظة عطرية",
+    "RemoveFragranceNote": "إزالة ملاحظة عطرية",
+    "Gender": "النوع",
+    "Note": "النوتة",
+    "SelectGender": "اختر النوع",
+    "SelectNote": "اختر النوتة",
+    "SelectExistingMainIngredients": "اختر المكونات الأساسية الموجودة",
+    "AttributeValues": "قيم الخصائص",
+    "PleaseSelectAttributesFirst": "الرجاء تحديد الخصائص أولاً",
+    "CreateNewMainIngredient": "إنشاء مكون أساسي جديد",
+    "Images": "الصور",
+    "DropFiles": "أسقط الملفات هنا أو اضغط للرفع"
+  }
 }

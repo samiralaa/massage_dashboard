@@ -95,12 +95,12 @@
       <div class=" " id="invoice-print" dir="ltr" >
         <div class="card p-4">
           <div class="d-flex justify-content-between align-items-center designInIframe">
-        <img :src="imageSrc.Elegance" class="rounded object-fit-contain " width="200" height="100" alt="hi">
+        <img :src="imageSrc.Message" class="rounded object-fit-contain " width="200" height="100" alt="hi">
         <div>
-          <h5>Elegance OUD</h5>
+          <h5>Message Perfume</h5>
           
           <p class="mb-0">00971544887138</p>
-          <p>Eleganceoud22@gmail.com</p>
+          <p>Messageoud22@gmail.com</p>
         </div>
       </div>
 
@@ -110,7 +110,11 @@
         <div class="col-md-6">
           <h6>Billed To:</h6>
           <p class="mb-0">{{ selectedOrder.user.name }}</p>
-          <p class="mb-0">{{ selectedOrder.address.country.name_en }}</p>
+          <p class="mb-0">{{ selectedOrder.user.address?.street }}</p>
+          <p class="mb-0">{{ selectedOrder.user.address?.city }}</p>
+          <p class="mb-0">{{ selectedOrder.user.address?.state }}</p>
+          <p class="mb-0">{{ selectedOrder.user.address?.zip }}</p>
+          <p class="mb-0">{{ selectedOrder.user.address?.country?.name_en }}</p>
           <p class="mb-0">{{ selectedOrder.user.email }}</p>
           <p>{{ selectedOrder.user.phone }}</p>
         </div>
@@ -135,7 +139,7 @@
          <tbody>
             <tr v-for="item in selectedOrder.items" :key="item.id">
               <td>{{ item.product_id }}</td>
-              <td>{{ item.product.name_en }}</td>
+              <td>{{ item.product?.name_en }}</td>
               <td>{{ item.price }} {{ selectedOrder.currency }}</td>
               <td>{{ item.quantity }}</td>
               <td>{{ item.subtotal }}</td>
@@ -154,7 +158,7 @@
         </tfoot>
       </table>
 
-      <p class="mt-4 text-center fw-bold">Elegance happy to see you again</p>
+      <p class="mt-4 text-center fw-bold">Message happy to see you again</p>
     </div>
   </div>
 
@@ -180,7 +184,7 @@ const showDetails = ref(false)
 const selectedOrder = ref(null)
 const loading = ref(false)
 const imageSrc = ref({
-  Elegance: 'assets/logo.png',
+  Message: 'assets/logo2.png',
   strappi :'assets/strappi.png',
   tabby:'assets/tabby.png',
   cash :'assets/cash.png'

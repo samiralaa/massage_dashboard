@@ -714,8 +714,8 @@ const getCountryCode = (id) => {
 </script>
 
 <style>
-@import "../assets/styles/variables.css";
-@import "../assets/styles/common.css";
+@import "@/assets/styles/variables.css";
+@import "@/assets/styles/common.css";
 
 /* Additional component-specific styles if needed */
 :deep(.el-select) {

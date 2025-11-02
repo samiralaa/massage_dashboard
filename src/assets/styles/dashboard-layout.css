@@ -119,7 +119,6 @@
   background: linear-gradient(to right, var(--primary-gold), var(--light-gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-color: black;
   background-clip: text;
 }
 
@@ -203,7 +202,6 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-md) 0;
-  background-color: black;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-gold) var(--dark-brown);
 }

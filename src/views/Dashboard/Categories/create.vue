@@ -30,13 +30,7 @@
           <textarea v-model="form.description_ar" required class="form-input form-textarea"></textarea>
         </div>
 
-        <div class="form-group">
-          <label>{{ $t('Categories.Brand') }}</label>
-          <el-select v-model="form.brand_id" :placeholder="$t('Categories.SelectBrand')" filterable clearable
-            class="form-input">
-            <el-option v-for="brand in brands" :key="brand.id" :label="brand.name_en" :value="brand.id" />
-          </el-select>
-        </div>
+      
         <div class="form-group">
           <label>{{ $t('Categories.Selected-Brand') }}</label>
           <input class="form-input" :value="form.brand_id" readonly />
