@@ -286,6 +286,19 @@
     "ExistingImages": "Existing Product Images",
     "UpdateButton": "Update Product",
     "AddAmount": "Add Amount",
+    "SelectExistingMainIngredients": "Select Existing Main Ingredients",
+    "SelectAttributes": "Select Attributes",
+    "SelectGender": "Select Gender",
+    "SelectNote": "Select Note",
+    "AddAttribute": "Add Attribute",
+    "RemoveAttribute": "Remove Attribute",
+    "Attributes": "Attributes",
+    "AttributeValues": "Attribute Values",
+    "PleaseSelectAttributesFirst": "Please select attributes first",
+    "CreateNewMainIngredient": "Create New Main Ingredient",
+    "FragranceNotes": "Fragrance Notes",
+    "AddMainIngredient": "Add Main Ingredient",
+    "RemoveMainIngredient": "Remove Main Ingredient",
     "cancel": "Cancel",
     "submit": "Submit",
     "Start-Date": "Start Date",
@@ -301,7 +314,9 @@
     "RemoveAmount": "Remove Amount",
     "discountInfo": "Discount Info",
     "discount": "Discount",
-    "removeDiscount": "Remove Discount"
+    "removeDiscount": "Remove Discount",
+    "Current": "Current",
+    "Old": "Old"
   },
   
   "Footer": {

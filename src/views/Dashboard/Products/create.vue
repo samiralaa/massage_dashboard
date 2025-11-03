@@ -113,35 +113,51 @@
 
         <!-- Select existing Main Ingredients -->
         <el-form-item :label="$t('Products.SelectExistingMainIngredients')">
-          <el-select v-model="form.selected_main_ingredient_ids" :placeholder="$t('Products.SelectExistingMainIngredients')" filterable clearable multiple>
-            <el-option v-for="ingredient in mainIngredientsList" :key="ingredient.id" :label="ingredient.name_en" :value="ingredient.id" />
+          <el-select
+            v-model="form.selected_main_ingredient_ids"
+            :placeholder="$t('Products.SelectExistingMainIngredients')"
+            filterable
+            clearable
+            multiple
+          >
+            <el-option
+              v-for="ingredient in mainIngredientsList"
+              :key="ingredient.id"
+              :label="getLocalizedIngredientName(ingredient)"
+              :value="ingredient.id"
+            >
+              {{ getLocalizedIngredientName(ingredient) }}
+            </el-option>
           </el-select>
         </el-form-item>
 
 
         <!-- Attributes -->
-        <el-form-item label="Attributes" prop="attribute_ids">
+        <el-form-item :label="$t('Products.Attributes')" prop="attribute_ids">
           <el-select 
             v-model="form.attribute_ids" 
-            placeholder="Select Attributes" 
+            :placeholder="$t('Products.SelectAttributes')" 
             filterable 
             clearable 
-            multiple>
+            multiple
+            popper-class="attribute-dropdown"
+          >
             <el-option 
               v-for="attribute in attributes" 
               :key="attribute.id" 
-              :label="attribute.name_en"
-              :value="attribute.id">
+              :label="getLocalizedAttributeName(attribute)"
+              :value="attribute.id"
+            >
               <div class="attribute-option">
                 <div v-if="attribute.icon" class="attribute-icon" v-html="attribute.icon"></div>
-                <span>{{ attribute.name_en }}</span>
+                <span>{{ getLocalizedAttributeName(attribute) }}</span>
               </div>
             </el-option>
           </el-select>
         </el-form-item>
 
         <!-- Attribute Values -->
-        <el-form-item label="Attribute Values">
+        <el-form-item :label="$t('Products.AttributeValues')">
           <div 
             v-for="attributeId in form.attribute_ids" 
             :key="attributeId" 
@@ -154,7 +170,7 @@
                 class="attribute-icon" 
                 v-html="injectValueIntoIcon(getAttribute(attributeId).icon, form.attribute_values[attributeId])">
               </div>
-              <span>{{ getAttribute(attributeId)?.name_en || attributeId }}</span>
+              <span>{{ getLocalizedAttributeName(getAttribute(attributeId)) || attributeId }}</span>
             </div>
 
             <!-- Input + Gradient Slider -->
@@ -272,7 +288,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { Plus, Delete } from '@element-plus/icons-vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const formRef = ref(null)
 
@@ -325,6 +341,22 @@ const notes = ref([
   { id: 'middle', name: lang === 'en' ? 'Middle Note' : 'الوسط' },
   { id: 'base', name: lang === 'en' ? 'Base Note' : 'القاعدة' },
 ])
+
+const currentLocale = computed(() => locale.value)
+
+const getLocalizedAttributeName = (attribute) => {
+  if (!attribute) return ''
+  return currentLocale.value === 'ar'
+    ? attribute.name_ar || attribute.name_en || ''
+    : attribute.name_en || attribute.name_ar || ''
+}
+
+const getLocalizedIngredientName = (ingredient) => {
+  if (!ingredient) return ''
+  return currentLocale.value === 'ar'
+    ? ingredient.name_ar || ingredient.name_en || ''
+    : ingredient.name_en || ingredient.name_ar || ''
+}
 
 const rules = {
   name_en: [{ required: true, message: lang === 'en' ? 'Please input product name (EN)' : "من فضلك ادخل اسم المنتج بالانجليزي", trigger: 'blur' }],
@@ -704,18 +736,25 @@ const getAttribute = (attributeId) => {
   margin-bottom: 5px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .attribute-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-right: 5px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.attribute-name .attribute-icon {
+  margin-inline-end: 4px;
 }
 
 .attribute-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 100%;
+  height: 100%;
   position: relative;
   overflow: visible; /* Ensure text is not clipped */
 }
@@ -723,13 +762,42 @@ const getAttribute = (attributeId) => {
 .attribute-icon svg text {
   font-weight: bold;
   pointer-events: none;
-  /* Add styles for text positioning and appearance */
   transform: translateY(0.2em); /* Adjust vertical position */
 }
 
 .attribute-option {
   display: flex;
   align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.attribute-option span {
+  flex: 1;
+  color: var(--el-text-color-primary, #303133);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attribute-option .attribute-icon {
+  margin-inline-end: 0;
+}
+
+:deep(.attribute-dropdown .el-select-dropdown__item) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:deep(.attribute-dropdown .el-select-dropdown__item .attribute-option) {
+  width: 100%;
+}
+
+:deep(.attribute-dropdown .attribute-icon svg) {
+  width: 26px;
+  height: 26px;
 }
 
 .no-attributes-message {

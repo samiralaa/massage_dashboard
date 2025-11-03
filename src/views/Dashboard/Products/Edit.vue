@@ -4,6 +4,91 @@
       <h2>{{ $t('Products.EditProduct') }}</h2>
 
       <el-form :model="form" ref="formRef" :rules="rules" label-width="120px" enctype="multipart/form-data">
+        <!-- Existing Main Ingredients (like create) -->
+        <el-form-item :label="$t('Products.SelectExistingMainIngredients')">
+          <el-select
+            v-model="form.selected_main_ingredient_ids"
+            :placeholder="$t('Products.SelectExistingMainIngredients')"
+            filterable
+            clearable
+            multiple
+          >
+            <el-option
+              v-for="ingredient in mainIngredientsList"
+              :key="ingredient.id"
+              :label="getLocalizedIngredientName(ingredient)"
+              :value="ingredient.id"
+            >
+              {{ getLocalizedIngredientName(ingredient) }}
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <!-- Attributes select + values (like create) -->
+        <el-form-item :label="$t('Products.Attributes')" prop="attribute_ids">
+          <el-select 
+            v-model="form.attribute_ids" 
+            :placeholder="$t('Products.SelectAttributes')" 
+            filterable 
+            clearable 
+            multiple
+            popper-class="attribute-dropdown"
+          >
+            <el-option 
+              v-for="attribute in attributes" 
+              :key="attribute.id" 
+              :label="getLocalizedAttributeName(attribute)"
+              :value="attribute.id"
+            >
+              <div class="attribute-option">
+                <div v-if="attribute.icon" class="attribute-icon" v-html="attribute.icon"></div>
+                <span>{{ getLocalizedAttributeName(attribute) }}</span>
+              </div>
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item :label="$t('Products.AttributeValues')">
+          <div 
+            v-for="attributeId in form.attribute_ids" 
+            :key="attributeId" 
+            class="attribute-value-item">
+
+            <div class="attribute-name">
+              <div 
+                v-if="getAttribute(attributeId)?.icon" 
+                class="attribute-icon" 
+                v-html="injectValueIntoIcon(getAttribute(attributeId).icon, form.attribute_values[attributeId])">
+              </div>
+              <span>{{ getLocalizedAttributeName(getAttribute(attributeId)) || attributeId }}</span>
+            </div>
+
+            <div class="attribute-input-container">
+              <el-input 
+                v-model="form.attribute_values[attributeId]" 
+                :placeholder="$t('Products.AttributeValues')"
+                @input="updateAttributeValue(attributeId, $event)" 
+              />
+
+              <div v-if="isPercentageValue(form.attribute_values[attributeId])" class="gradient-control">
+                <label class="gradient-label">Gradient %:</label>
+                <input 
+                  type="range" 
+                  :value="getPercentageValue(form.attribute_values[attributeId])" 
+                  min="0" 
+                  max="100"
+                  @input="updatePercentageValue(attributeId, $event.target.value)" 
+                  class="gradient-range"
+                >
+                <span class="percent-display">{{ getPercentageValue(form.attribute_values[attributeId]) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="(form.attribute_ids || []).length === 0" class="no-attributes-message">
+            {{ $t('Products.PleaseSelectAttributesFirst') }}
+          </div>
+        </el-form-item>
         <!-- Name EN -->
         <el-form-item :label="$t('Products.NameEn')" prop="name_en">
           <el-input v-model="form.name_en" :placeholder="$t('Products.NameEn')" />
@@ -21,19 +106,19 @@
           <div v-for="(amount, index) in form.amounts" :key="index" class="amount-entry mb-3">
             <el-divider content-position="left">{{ $t('Products.Amount-Info') }}</el-divider>
             <el-row :gutter="20"> <!-- Add el-row for amount fields -->
-              <el-col :span="8">
+              <el-col :span="12">
             <el-form-item :label="$t('Products.Unit')" :prop="`amounts.${index}.unit_id`">
               <el-select v-model="amount.unit_id" :placeholder="$t('Products.select-unit')" filterable clearable>
                 <el-option v-for="unit in units" :key="unit.id" :label="unit.name_en" :value="unit.id" />
               </el-select>
             </el-form-item>
               </el-col>
-              <el-col :span="8">
+              <el-col :span="12">
             <el-form-item :label="$t('Products.Weight')" :prop="`amounts.${index}.weight`">
                   <el-input v-model="amount.weight" type="number" :min="1" :placeholder="$t('Products.Weight')" />
             </el-form-item>
               </el-col>
-              <el-col :span="8">
+              <el-col :span="12">
             <el-form-item :label="$t('Products.amount-Price')" :prop="`amounts.${index}.price`">
                   <el-input v-model="amount.price" type="number" :min="1" :placeholder="$t('Products.amount-Price')" />
             </el-form-item>
@@ -53,31 +138,30 @@
 
         <!-- Attributes -->
         <el-divider content-position="left">{{ $t('Products.Attributes') }}</el-divider>
-        <div v-for="(attribute, index) in form.attributes" :key="index" class="attribute-entry mb-3">
-          <el-row :gutter="20"> <!-- Add el-row for attribute fields -->
+        <div v-for="(attribute, index) in form.attributes" :key="index" class="attribute-entry">
+          <div class="attribute-header">
+            <span class="attribute-title">{{ $t('Products.Attributes') }} #{{ index + 1 }}</span>
+            <el-button class="attribute-remove" type="danger" text circle :icon="Delete" @click="removeAttribute(index)" />
+          </div>
+          <el-row :gutter="16" class="attribute-fields">
             <el-col :span="8">
-              <el-form-item :label="`Attribute Name EN ${index + 1}`" :prop="`attributes.${index}.name_en`">
+              <el-form-item :label="$t('Products.NameEn')" :prop="`attributes.${index}.name_en`">
                 <el-input v-model="attribute.name_en" :placeholder="$t('Products.NameEn')" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item :label="`Attribute Name AR ${index + 1}`" :prop="`attributes.${index}.name_ar`">
+              <el-form-item :label="$t('Products.NameAr')" :prop="`attributes.${index}.name_ar`">
                 <el-input v-model="attribute.name_ar" :placeholder="$t('Products.NameAr')" />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item :label="`Attribute Value ${index + 1}`" :prop="`attributes.${index}.value`">
+              <el-form-item :label="$t('Products.Value')" :prop="`attributes.${index}.value`">
                 <el-input v-model="attribute.value" :placeholder="$t('Products.Value')" />
               </el-form-item>
             </el-col>
           </el-row>
-          <el-row :gutter="20" class="button-row">
-            <el-col :span="24">
-              <el-button type="danger" @click="removeAttribute(index)">{{ $t('Products.RemoveAttribute') }}</el-button>
-            </el-col>
-          </el-row>
         </div>
-        <el-button type="primary" @click="addAttribute">{{ $t('Products.AddAttribute') }}</el-button>
+        <el-button type="primary" plain @click="addAttribute">{{ $t('Products.AddAttribute') }}</el-button>
 
         <!-- Main Ingredients -->
         <template v-if="form.main_ingredients.length > 0">
@@ -237,9 +321,11 @@
           </el-form-item>
         </template>
 
-        <!-- Price -->
-        <el-form-item v-if="!form.amounts" :label="$t('Products.Price')" prop="price">
+        <!-- Price + converted/discounted display -->
+        <el-form-item v-if="!form.amounts || form.amounts.length === 0" :label="$t('Products.Price')" prop="price">
           <el-input v-model="form.price" type="number" :min="1" :placeholder="$t('Products.Price')" />
+          <el-tag v-if="convertedPrice !== null" size="small" effect="plain" class="current-value">Converted: {{ convertedPrice }}</el-tag>
+          <el-tag v-if="discountedPrice !== null" size="small" type="success" effect="plain" class="current-value">Discounted: {{ discountedPrice }}</el-tag>
         </el-form-item>
 
         <!-- Availability -->
@@ -260,40 +346,45 @@
 
         <el-form-item :label="$t('Products.brand')" prop="brand_id">
           <el-select v-model="form.brand_id" filterable clearable :placeholder="$t('Products.SelectBrand')">
+            <el-option v-if="originalBrandId" :label="$t('Products.Old') + ': ' + getBrandNameById(originalBrandId)" :value="originalBrandId" disabled />
             <el-option v-for="brand in brands" :key="brand.id" :label="brand.name_en" :value="brand.id" />
           </el-select>
-          <span class="current-value">{{ $t('Products.Current') }}: {{ selectedBrandName }}</span>
+          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedBrandName }}</el-tag>
         </el-form-item>
 
             <el-form-item :label="$t('Products.Category')" prop="category_id">
           <el-select v-model="form.category_id" filterable clearable   :placeholder="$t('Products.SelectCategory')">
+            <el-option v-if="originalCategoryId" :label="$t('Products.Old') + ': ' + getCategoryNameById(originalCategoryId)" :value="originalCategoryId" disabled />
             <el-option v-for="cat in categories" :key="cat.id"  :label="cat.name_en || cat.name_ar" :value="cat.id" />
           </el-select>
-          <span class="current-value">{{ $t('Products.Current') }}: {{ selectedCategoryName }}</span>
+          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedCategoryName }}</el-tag>
         </el-form-item>
 
         <el-form-item :label="$t('Products.Currency')" prop="currency_id">
           <el-select v-model="form.currency_id" filterable clearable  :placeholder="$t('Products.SelectCurrency')">
+            <el-option v-if="originalCurrencyId" :label="$t('Products.Old') + ': ' + getCurrencyLabelById(originalCurrencyId)" :value="originalCurrencyId" disabled />
             <el-option v-for="curr in activeCurrencies" :key="curr.id" :label="getCurrencyLabel(curr)"
               :value="curr.id" />
           </el-select>
-          <span class="current-value">{{ $t('Products.Current') }}: {{ selectedCurrencyLabel }}</span>
+          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedCurrencyLabel }}</el-tag>
         </el-form-item>
 
         <el-form-item :label="$t('Products.Country')" prop="country_id">
           <el-select v-model="form.country_id" filterable clearable :placeholder="$t('Products.SelectCountry')">
+            <el-option v-if="originalCountryId" :label="$t('Products.Old') + ': ' + getCountryNameById(originalCountryId)" :value="originalCountryId" disabled />
             <el-option v-for="country in countries" :key="country.id" :label="country.name_en || country.name_ar"
               :value="country.id" />
           </el-select>
-          <span class="current-value">{{ $t('Products.Current') }}: {{ selectedCountryName }}</span>
+          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedCountryName }}</el-tag>
         </el-form-item>
 
         <el-form-item :label="$t('Products.ParentProduct')" prop="parent_id">
           <el-select v-model="form.parent_id" clearable :placeholder="$t('Products.SelectParentProduct')">
             <el-option :label="$t('Products.None')" :value="null" />
+            <el-option v-if="originalParentId" :label="$t('Products.Old') + ': ' + getParentNameById(originalParentId)" :value="originalParentId" disabled />
             <el-option v-for="parent in parentProducts" :key="parent.id" :label="parent.name_en" :value="parent.id" />
           </el-select>
-          <span class="current-value">{{ $t('Products.Current') }}: {{ selectedParentProductName }}</span>
+          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedParentProductName }}</el-tag>
         </el-form-item>
 
         <!-- Image Upload -->
@@ -323,6 +414,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { Delete } from '@element-plus/icons-vue'
 import { ElLoading } from 'element-plus' // Import ElLoading
 import { ElMessageBox } from 'element-plus' // Import ElMessageBox
 
@@ -360,10 +452,20 @@ const form = ref({
     endDate: null,
     is_active: false
   },
-  attributes: [], // Add this line
-  main_ingredients: [], // Add this line
-  fragrance_notes: [], // Add this line
+  attributes: [],
+  main_ingredients: [],
+  fragrance_notes: [],
+  attribute_ids: [],
+  attribute_values: {},
+  selected_main_ingredient_ids: [],
 })
+
+// Track original (old) IDs to surface previous values inside selects
+const originalBrandId = ref(null)
+const originalCategoryId = ref(null)
+const originalCurrencyId = ref(null)
+const originalCountryId = ref(null)
+const originalParentId = ref(null)
 const addAmount = () => {
   form.value.amounts.push({
     unit_id: null,
@@ -410,6 +512,10 @@ const countries = ref([])
 const parentProducts = ref([])
 const brands = ref([])
 const units = ref([])
+const attributes = ref([])
+const mainIngredientsList = ref([])
+const convertedPrice = ref(null)
+const discountedPrice = ref(null)
 
 const getCurrencyLabel = (currency) => (localStorage.getItem('lang') || 'en') === 'ar' ? currency.name_ar : currency.name_en
 const activeCurrencies = computed(() => currencies.value.filter(c => !c.is_deleted))
@@ -445,6 +551,28 @@ const selectedParentProductName = computed(() => {
   return parentProduct ? parentProduct.name_en : 'N/A';
 });
 
+// Helpers to get OLD names by id
+const getBrandNameById = (id) => {
+  const brand = brands.value.find(b => b.id === id)
+  return brand ? ((localStorage.getItem('lang') || 'en') === 'ar' ? brand.name_ar : brand.name_en) : 'N/A'
+}
+const getCategoryNameById = (id) => {
+  const cat = categories.value.find(c => c.id === id)
+  return cat ? ((localStorage.getItem('lang') || 'en') === 'ar' ? cat.name_ar : cat.name_en) : 'N/A'
+}
+const getCountryNameById = (id) => {
+  const c = countries.value.find(x => x.id === id)
+  return c ? ((localStorage.getItem('lang') || 'en') === 'ar' ? c.name_ar : c.name_en) : 'N/A'
+}
+const getParentNameById = (id) => {
+  const p = parentProducts.value.find(x => x.id === id)
+  return p ? p.name_en : 'N/A'
+}
+const getCurrencyLabelById = (id) => {
+  const cur = activeCurrencies.value.find(x => x.id === id)
+  return cur ? getCurrencyLabel(cur) : 'N/A'
+}
+
 const getImageUrl = (imgPath) => {
   if (!imgPath) return '';
   if (typeof imgPath === 'object' && imgPath.url) return imgPath.url;
@@ -452,12 +580,108 @@ const getImageUrl = (imgPath) => {
   return `${BASE_URL}/public/storage/${imgPath}`;
 }
 
+// Helpers for localized names and attribute value UI
+const getLocalizedAttributeName = (attribute) => {
+  const lang = localStorage.getItem('lang') || 'en'
+  if (!attribute) return ''
+  return lang === 'ar'
+    ? (attribute.name_ar || attribute.name_en || '')
+    : (attribute.name_en || attribute.name_ar || '')
+}
+
+const getLocalizedIngredientName = (ingredient) => {
+  const lang = localStorage.getItem('lang') || 'en'
+  if (!ingredient) return ''
+  return lang === 'ar'
+    ? (ingredient.name_ar || ingredient.name_en || '')
+    : (ingredient.name_en || ingredient.name_ar || '')
+}
+
+const isPercentageValue = (value) => {
+  return typeof value === 'string' && value.includes('%')
+}
+
+const getPercentageValue = (value) => {
+  if (!value || !isPercentageValue(value)) return 0
+  return parseFloat(value.replace('%', '')) || 0
+}
+
+const updatePercentageValue = (attributeId, newValue) => {
+  form.value.attribute_values[attributeId] = `${newValue}%`
+}
+
+const updateAttributeValue = (id, value) => {
+  form.value.attribute_values[id] = value
+}
+
+const getAttribute = (attributeId) => attributes.value.find(attr => attr.id === attributeId)
+
+// Inject dynamic value into SVG icons
+const injectValueIntoIcon = (iconSvg, value) => {
+  if (!iconSvg) return ''
+  let modifiedSvg = iconSvg
+  const defsMatch = modifiedSvg.match(/<defs[^>]*>([\s\S]*?)<\/defs>/)
+  let existingDefsContent = defsMatch ? defsMatch[1] : ''
+  const isPct = typeof value === 'string' && value.includes('%')
+  const numericValue = isPct ? parseFloat(value.replace('%', '')) : null
+  if (isPct && numericValue !== null && !isNaN(numericValue)) {
+    const offset = Math.max(0, Math.min(1, numericValue / 100))
+    const linearGradientMatch = existingDefsContent.match(/<linearGradient id="(g[0-9]+)"[^>]*>([\s\S]*?)<\/linearGradient>/)
+    if (linearGradientMatch) {
+      const gradientId = linearGradientMatch[1]
+      let gradientContent = linearGradientMatch[2]
+      gradientContent = gradientContent.replace(/<stop offset="[^"]*"([^>]*)>/g, () => {
+        return `<stop offset="${offset}" stop-color="#78D6F0"/>` + `<stop offset="${offset}" stop-color="#8D8D8D" stop-opacity="0.2"/>`
+      })
+      const newLinearGradient = `<linearGradient id="${gradientId}"${linearGradientMatch[0].split(gradientId)[1].split('>')[0]}>${gradientContent}</linearGradient>`
+      existingDefsContent = existingDefsContent.replace(linearGradientMatch[0], newLinearGradient)
+      if (modifiedSvg.includes('fill="') && !modifiedSvg.includes(`fill="url(#${gradientId})"`)) {
+        modifiedSvg = modifiedSvg.replace(/fill="[^"]*"/g, `fill="url(#${gradientId})"`)
+      }
+      if (modifiedSvg.includes('stroke="') && !modifiedSvg.includes(`stroke="url(#${gradientId})"`)) {
+        modifiedSvg = modifiedSvg.replace(/stroke="[^"]*"/g, `stroke="url(#${gradientId})" stroke-width="2"`)
+      }
+    } else {
+      const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`
+      const gradientDef = `
+      <linearGradient id="${gradientId}" x1="0%" y1="100%" x2="0%" y2="0%" gradientUnits="userSpaceOnUse">
+        <stop offset="${offset}" stop-color="#78D6F0"/>
+        <stop offset="${offset}" stop-color="#8D8D8D" stop-opacity="0.2"/>
+      </linearGradient>
+    `
+      existingDefsContent += gradientDef
+      if (modifiedSvg.includes('fill="')) {
+        modifiedSvg = modifiedSvg.replace(/fill="[^"]*"/g, `fill="url(#${gradientId})"`)
+      }
+      if (modifiedSvg.includes('stroke="')) {
+        modifiedSvg = modifiedSvg.replace(/stroke="[^"]*"/g, `stroke="url(#${gradientId})" stroke-width="2"`)
+      }
+    }
+    if (defsMatch) {
+      modifiedSvg = modifiedSvg.replace(defsMatch[0], `<defs>${existingDefsContent}</defs>`)
+    } else {
+      const svgTagMatch = modifiedSvg.match(/<svg[^>]*>/)
+      if (svgTagMatch) {
+        modifiedSvg = modifiedSvg.replace(svgTagMatch[0], `${svgTagMatch[0]}<defs>${existingDefsContent}</defs>`)
+      }
+    }
+  }
+  const closingTagIndex = modifiedSvg.lastIndexOf('</svg>')
+  if (closingTagIndex !== -1 && value) {
+    return (
+      modifiedSvg.substring(0, closingTagIndex) +
+      `<text x="50%" y="50%" font-size="16" font-weight="bold" text-anchor="middle" dominant-baseline="middle" fill="#333333" stroke="white" stroke-width="1">${value}</text>` +
+      modifiedSvg.substring(closingTagIndex)
+    )
+  }
+  return modifiedSvg
+}
 const fetchOptions = async () => {
   const token = JSON.parse(localStorage.getItem('tokenData'))?.token
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
   loading.value = true; // Set loading to true
   try {
-  const [cat, cur, cou, parents, brand, unit] = await Promise.all([
+  const [cat, cur, cou, parents, brand, unit, attr, ing] = await Promise.all([
       form.value.brand_id
       ? axios.get(`${BASE_URL}/api/brands/${form.value.brand_id}/categories`)
       : axios.get(`${BASE_URL}/api/categories`),
@@ -466,6 +690,8 @@ const fetchOptions = async () => {
     axios.get(`${BASE_URL}/api/products`),
     axios.get(`${BASE_URL}/api/brands`),
     axios.get(`${BASE_URL}/api/units`),
+    axios.get(`${BASE_URL}/api/attributes`),
+    axios.get(`${BASE_URL}/api/main-ingredients`),
   ])
   categories.value = cat.data.data
   console.log('Categories:', categories.value);
@@ -475,6 +701,8 @@ const fetchOptions = async () => {
   parentProducts.value = parents.data.data
   brands.value = brand.data.data
   units.value = unit.data.data
+  attributes.value = attr.data.data || []
+  mainIngredientsList.value = Array.isArray(ing.data) ? ing.data : (ing.data?.data || [])
   } catch (error) {
     console.error('Error fetching options', error); // Added error logging
   } finally {
@@ -501,6 +729,11 @@ const fetchProduct = async () => {
     form.value.country_id = product.country_id;
     form.value.brand_id = product.brand_id;
     form.value.parent_id = product.parent_id;
+    // Save originals for showing old values inside selects
+    originalCurrencyId.value = product.currency_id;
+    originalCountryId.value = product.country_id;
+    originalBrandId.value = product.brand_id;
+    originalParentId.value = product.parent_id;
     form.value.quantity = product.quantity ?? 1;
     form.value.amounts = product.amounts?.map(a => ({
       unit_id: a.unit_id,
@@ -509,10 +742,15 @@ const fetchProduct = async () => {
       id: a.id // لو احتجت ID في التعديل
     })) || [];
 
+    if (form.value.amounts.length > 0) {
+      form.value.price = form.value.amounts[0]?.price ?? form.value.price;
+    }
+
     form.value.type = product.type ?? 'product';
     form.value.offer = product.discount ? '1' : '0';
     form.value.offer_price = product.discount ? product.discounted_price : '';
     form.value.category_id = product.category_id;
+    originalCategoryId.value = product.category_id;
     form.value.images = product.images.map(img => ({
       id: img.id,
       path: img.path,
@@ -560,6 +798,28 @@ const fetchProduct = async () => {
       id: note.id // Add this line to capture fragrance note ID
     })) || [];
 
+    // Derive attribute_ids and attribute_values for select UI from existing attributes
+    if (Array.isArray(product.attributes) && product.attributes.length > 0) {
+      form.value.attribute_ids = product.attributes.map(a => a.id)
+      const valuesMap = {}
+      product.attributes.forEach(a => {
+        valuesMap[a.id] = a.value
+      })
+      form.value.attribute_values = valuesMap
+    } else {
+      form.value.attribute_ids = []
+      form.value.attribute_values = {}
+    }
+
+    // Map selected existing main ingredients by id
+    form.value.selected_main_ingredient_ids = (product.main_ingredients || [])
+      .filter(mi => mi && mi.id)
+      .map(mi => mi.id)
+
+    // Converted / discounted price from API
+    convertedPrice.value = product.converted_price ?? null
+    discountedPrice.value = product.discounted_price ?? null
+
 
     // Fetch categories, currencies, and brands
     const [catRes, currRes, brandRes] = await Promise.all([
@@ -592,10 +852,38 @@ const submitForm = () => {
   formRef.value.validate(async (valid) => {
     if (!valid) return
     const formData = new FormData()
+    const hasAmounts = Array.isArray(form.value.amounts) && form.value.amounts.length > 0
     for (const key in form.value) {
-      if (key !== 'images' && form.value[key] !== null && key !== 'amounts' && key !== 'attributes' && key !== 'main_ingredients' && key !== 'fragrance_notes' && key !== 'discount') {
-        formData.append(key, form.value[key])
+      if (key === 'images' || key === 'amounts' || key === 'attributes' || key === 'main_ingredients' || key === 'fragrance_notes' || key === 'discount') continue
+      const value = form.value[key]
+      if (value === null || value === undefined || value === '') continue
+      if (key === 'price') {
+        const numericPrice = typeof value === 'number' ? value : Number(value)
+        if (Number.isNaN(numericPrice)) continue
+        formData.append('price', numericPrice)
+      } else {
+        formData.append(key, value)
       }
+    }
+
+    // Append attribute_ids and corresponding values
+    if (Array.isArray(form.value.attribute_ids)) {
+      form.value.attribute_ids.forEach((attrId, index) => {
+        formData.append(`attribute_ids[${index}]`, attrId)
+        const attrValue = form.value.attribute_values?.[attrId]
+        if (attrValue !== undefined && attrValue !== null && attrValue !== '') {
+          let v = attrValue
+          if (typeof v === 'string' && v.includes('%')) v = parseFloat(v.replace('%', ''))
+          formData.append(`attribute_values[${attrId}]`, v)
+        }
+      })
+    }
+
+    // Append selected existing main ingredient IDs
+    if (Array.isArray(form.value.selected_main_ingredient_ids) && form.value.selected_main_ingredient_ids.length > 0) {
+      form.value.selected_main_ingredient_ids.forEach((id, index) => {
+        formData.append(`selected_main_ingredient_ids[${index}]`, id)
+      })
     }
 
     form.value.amounts.forEach((amount, i) => {
@@ -829,6 +1117,17 @@ onMounted(async() => {
   await fetchProduct()
   fetchOptions()
 })
+
+// Keep top-level price synced to first amount price
+watch(
+  () => form.value.amounts,
+  (newArr) => {
+    if (Array.isArray(newArr) && newArr.length > 0) {
+      form.value.price = newArr[0]?.price ?? null
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>
@@ -848,6 +1147,66 @@ onMounted(async() => {
   margin-bottom: 1em;
 }
 
+.attribute-entry {
+  position: relative;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  padding: 12px 12px 4px;
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+.attribute-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.attribute-title {
+  font-weight: 600;
+  color: var(--el-text-color-primary, #303133);
+}
+
+.attribute-remove {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+}
+
+/* Make labels above inputs only inside attributes section */
+:deep(.attribute-entry .el-form-item__label) {
+  float: none;
+  display: block;
+  width: auto !important;
+  text-align: start;
+  padding: 0 0 4px 0;
+}
+
+:deep(.attribute-entry .el-form-item__content) {
+  margin-left: 0 !important;
+}
+
+/* Bigger inputs across this page */
+::deep(.el-input__wrapper) {
+  min-height: 46px;
+  padding: 10px 14px;
+  font-size: 15px;
+}
+
+::deep(.el-select .el-input__wrapper) {
+  min-height: 46px;
+}
+
+::deep(.el-input-number .el-input__wrapper) {
+  min-height: 46px;
+}
+
+::deep(.el-input-number__decrease),
+::deep(.el-input-number__increase) {
+  height: 46px;
+}
+
 ::v-deep(.el-form-item__label) {
   text-align: start;
   justify-content: flex-start;
@@ -858,6 +1217,10 @@ onMounted(async() => {
   border: 1px solid #dcdfe6; /* Add a subtle border */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
   transition: all 0.2s ease-in-out;
+}
+
+.current-value {
+  margin-inline-start: 8px;
 }
 
 .image-preview-list img:hover {
@@ -912,481 +1275,4 @@ onMounted(async() => {
   align-items: center;
   justify-content: center;
 }
-</style>
-    form.value.amounts = product.amounts?.map(a => ({
-
-      unit_id: a.unit_id,
-
-      weight: a.weight,
-
-      price: a.price,
-
-      id: a.id // لو احتجت ID في التعديل
-
-    })) || [];
-
-
-
-    form.value.type = product.type ?? 'product';
-
-    form.value.offer = product.discount ? '1' : '0';
-
-    form.value.offer_price = product.discount ? product.discounted_price : '';
-
-    form.value.category_id = product.category_id;
-
-    form.value.images = product.images.map(img => ({
-
-      id: img.id,
-
-      path: img.path,
-
-      url: getImageUrl(img.path)
-
-    }))
-
-    form.value.discount = product.discount
-
-      ? {
-
-          id: product.discount.id,
-
-          value: parseFloat(product.discount.discount_value),
-
-          startDate: product.discount.start_date?.split('T')[0],
-
-          endDate: product.discount.end_date?.split('T')[0],
-
-          is_active: product.discount.is_active,
-
-        }
-
-      : {
-
-          id: null,
-
-          value: null,
-
-          startDate: null,
-
-          endDate: null,
-
-          is_active: false
-
-        };
-
-
-
-    form.value.attributes = product.attributes?.map(attr => ({
-      name_en: attr.name_en,
-      name_ar: attr.name_ar,
-      value: attr.value,
-      id: attr.id // Add this line to capture attribute ID
-    })) || [];
-
-    form.value.main_ingredients = product.main_ingredients?.map(ing => ({
-      name_en: ing.name_en,
-      name_ar: ing.name_ar,
-      id: ing.id, // Add this line to capture main ingredient ID
-      images: ing.images.map(img => ({ // Add this section to map images
-        id: img.id,
-        path: img.path,
-        url: getImageUrl(img.path)
-      })) || []
-    })) || [];
-
-
-
-    // Fetch categories, currencies, and brands
-
-    const [catRes, currRes, brandRes] = await Promise.all([
-
-      axios.get('/api/categories'),
-
-      axios.get('/api/website/currencies'), // Updated endpoint
-      axios.get('/api/brands'),
-
-    ]);
-
-    categories.value = catRes.data.data;
-
-    currencies.value = currRes.data.data; // Changed from currRes.data to currRes.data.data
-    brands.value = brandRes.data.data; // <-- FIXED LINE
-
-  } catch (error) {
-
-    console.error('Error loading product data', error);
-
-  } finally {
-    loading.value = false; // Set loading to false
-  }
-
-}
-
-
-
-const handleFileChange = (file, fileList) => (form.value.images = fileList)
-
-const handleRemove = (file, fileList) => (form.value.images = fileList)
-
-
-const handleMainIngredientFileChange = (file, fileList, index) => {
-  form.value.main_ingredients[index].images = fileList;
-};
-
-const handleMainIngredientRemove = (file, fileList, index) => {
-  form.value.main_ingredients[index].images = fileList;
-};
-
-
-const submitForm = () => {
-
-  formRef.value.validate(async (valid) => {
-
-    if (!valid) return
-
-    const formData = new FormData()
-
-    for (const key in form.value) {
-
-      if (key !== 'images' && form.value[key] !== null && key !== 'amounts' && key !== 'attributes' && key !== 'main_ingredients' && key !== 'discount') {
-        formData.append(key, form.value[key])
-      }
-    }
-
-
-    form.value.amounts.forEach((amount, i) => {
-
-      formData.append(`amounts[${i}][unit_id]`, amount.unit_id)
-
-      formData.append(`amounts[${i}][weight]`, amount.weight)
-
-      formData.append(`amounts[${i}][price]`, amount.price)
-
-      if (amount.id) {
-
-        formData.append(`amounts[${i}][id]`, amount.id)
-
-      }
-
-    })
-
-    form.value.images.forEach(img => {
-
-      if (img.raw) {
-
-        // New image file
-
-        formData.append('images[]', img.raw)
-
-      } else if (img.id) {
-
-        // Existing image path: send only the relative path
-
-        formData.append('existing_images[]', img.id)
-
-      }
-
-    })
-
-    if (form.value.discount.value) {
-
-      formData.append('discount[value]', form.value.discount.value)
-
-      formData.append('discount[startDate]', form.value.discount.startDate)
-
-      formData.append('discount[endDate]', form.value.discount.endDate)
-
-      if (form.value.discount.id) {
-
-        formData.append('discount[id]', form.value.discount.id)
-
-      }
-
-    }
-
-    
-    form.value.attributes.forEach((attr, i) => {
-      formData.append(`attributes[${i}][name_en]`, attr.name_en)
-      formData.append(`attributes[${i}][name_ar]`, attr.name_ar)
-      formData.append(`attributes[${i}][value]`, attr.value)
-      if (attr.id) {
-        formData.append(`attributes[${i}][id]`, attr.id)
-      }
-    })
-
-    form.value.main_ingredients.forEach((ing, i) => {
-      formData.append(`main_ingredients[${i}][name_en]`, ing.name_en)
-      formData.append(`main_ingredients[${i}][name_ar]`, ing.name_ar)
-      if (ing.id) {
-        formData.append(`main_ingredients[${i}][id]`, ing.id)
-      }
-      ing.images.forEach(img => {
-        if (img.raw) {
-          // New image file
-          formData.append(`main_ingredients[${i}][images][]`, img.raw)
-        } else if (img.id) {
-          // Existing image path: send only the relative path
-          formData.append(`main_ingredients[${i}][existing_images][]`, img.id)
-        }
-      })
-    })
-    
-    
-    loading.value = true; // Set loading to true for submission
-    try {
-    const token = JSON.parse(localStorage.getItem('tokenData'))?.token
-
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-    await axios.post(`${BASE_URL}/api/products/${productId}?_method=PUT`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-
-    ElMessage.success('Product updated successfully')
-
-    router.push('/products')
-
-    } catch (error) {
-      console.error('Error submitting form', error); // Added error logging
-      ElMessage.error('Error updating product'); // Display error message
-    } finally {
-      loading.value = false; // Set loading to false
-    }
-  })
-
-}
-
-
-
-const removeDiscount = () => {
-
-  const confirmation = confirm(localStorage.getItem('lang') === 'ar'
-
-    ? 'سيتم حذف الخصم'
-
-    : 'The discount will be deleted');
-
-
-
-  if (!confirmation) return;
-
-
-
-  form.value.discount = {
-
-    id: null,
-
-    value: null,
-
-    startDate: null,
-
-    endDate: null,
-
-    is_active: false
-
-  };
-
-}
-
-
-const addAttribute = () => {
-  form.value.attributes.push({
-    name_en: '',
-    name_ar: '',
-    value: ''
-  });
-};
-
-const removeAttribute = (index) => {
-  if (form.value.attributes.length <= 1) {
-    ElMessage.warning(localStorage.getItem('lang') === 'ar' ? 'يجب عليك حفظ خاصية واحدة على الاقل' : 'At least one attribute is required.');
-    return;
-  }
-  ElMessageBox.confirm(
-    localStorage.getItem('lang') === 'ar' ? 'سيتم حذف الخاصية' : 'The attribute will be deleted',
-    'Warning',
-    {
-      confirmButtonText: localStorage.getItem('lang') === 'ar' ? 'موافق' : 'OK',
-      cancelButtonText: localStorage.getItem('lang') === 'ar' ? 'إلغاء' : 'Cancel',
-      type: 'warning',
-    }
-  ).then(() => {
-    form.value.attributes.splice(index, 1);
-    ElMessage.success(
-      localStorage.getItem('lang') === 'ar' ? 'تم حذف الخاصية بنجاح' : 'Attribute deleted successfully'
-    );
-  }).catch(() => {
-    ElMessage.info(
-      localStorage.getItem('lang') === 'ar' ? 'تم إلغاء الحذف' : 'Delete cancelled'
-    );
-  });
-};
-
-const addMainIngredient = () => {
-  form.value.main_ingredients.push({
-    name_en: '',
-    name_ar: ''
-  });
-};
-
-const removeMainIngredient = (index) => {
-  if (form.value.main_ingredients.length <= 1) {
-    ElMessage.warning(localStorage.getItem('lang') === 'ar' ? 'يجب عليك حفظ مكون أساسي واحد على الاقل' : 'At least one main ingredient is required.');
-    return;
-  }
-  ElMessageBox.confirm(
-    localStorage.getItem('lang') === 'ar' ? 'سيتم حذف المكون الأساسي' : 'The main ingredient will be deleted',
-    'Warning',
-    {
-      confirmButtonText: localStorage.getItem('lang') === 'ar' ? 'موافق' : 'OK',
-      cancelButtonText: localStorage.getItem('lang') === 'ar' ? 'إلغاء' : 'Cancel',
-      type: 'warning',
-    }
-  ).then(() => {
-    form.value.main_ingredients.splice(index, 1);
-    ElMessage.success(
-      localStorage.getItem('lang') === 'ar' ? 'تم حذف المكون الأساسي بنجاح' : 'Main ingredient deleted successfully'
-    );
-  }).catch(() => {
-    ElMessage.info(
-      localStorage.getItem('lang') === 'ar' ? 'تم إلغاء الحذف' : 'Delete cancelled'
-    );
-  });
-};
-
-
-
-watch(
-
-  () => form.value.brand_id, async (newBrandId) => {
-
-  if (newBrandId) {
-
-    try {
-
-      const res = await axios.get(`${BASE_URL}/api/brands/${newBrandId}/categories`)
-
-      categories.value = res.data.data
-
-      console.log('Categories for brand:', categories.value);
-
-      
-
-      // form.value.category_id = null // Reset selected category
-
-    } catch (error) {
-
-      console.error('Failed to fetch categories for brand', error)
-
-    }
-
-  } else {
-
-    // Optionally, reload all categories if no brand is selected
-
-    const catRes = await axios.get(`${BASE_URL}/api/categories`)
-
-    categories.value = catRes.data.data
-
-    form.value.category_id = null
-
-  }
-
-}
-
-)
-
-
-
-onMounted(async() => {
-
-  await fetchProduct()
-
-  fetchOptions()
-
-})
-
-</script>
-
-
-
-<style scoped>
-
-.product-edit-container {
-
-  max-width: 800px;
-
-  margin: 30px auto;
-
-  padding: 20px;
-
-}
-
-
-
-.product-card {
-
-  padding: 20px;
-
-}
-
-
-
-.image-preview-list {
-
-  display: flex;
-
-  flex-wrap: wrap;
-
-  margin-bottom: 1em;
-
-}
-
-
-
-::v-deep(.el-form-item__label) {
-
-  text-align: start;
-
-  justify-content: flex-start;
-
-  width: 170px !important;
-
-}
-
-
-
-
-
-
-
-/*  [dir="rtl"] .el-switch{
-
-  flex-direction: row-reverse;
-
-}*/
-
-.el-dialog__footer {
-
-  justify-content: end;
-
-  display: flex;
-
-  gap: 12px;
-
-}
-
-
-
-::v-deep(.el-upload-list__item) {
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
-  justify-content: center;
-
-}
-
 </style>
