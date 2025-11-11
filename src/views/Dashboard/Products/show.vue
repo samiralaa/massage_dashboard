@@ -20,6 +20,8 @@
       <!-- Product Information -->
       <div class="info">
         <p><strong>{{ $t('Products.Price') }}:</strong> {{ product.price }} {{ product.currency?.name_en || '' }}</p>
+        <p v-if="product.converted_price != null"><strong>{{ $t('Products.ConvertedPrice') }}:</strong> {{ product.converted_price }}</p>
+        <p v-if="product.discounted_price != null"><strong>{{ $t('Products.DiscountedPrice') }}:</strong> {{ product.discounted_price }}</p>
         <p><strong>{{ $t('Products.Quantity') }}:</strong> {{ totalInventory }}</p>
         <p><strong>{{ $t('Products.Availability') }}:</strong> {{ product.is_available ? $t('Products.Available') : $t('Products.NotAvailable') }}</p>
         <p><strong>{{ $t('Products.DescriptionEn') }}:</strong> {{ product.description_en || $t('Products.NA') }}</p>
@@ -64,6 +66,8 @@
             <p><strong>{{ $t('Products.Unit') }}:</strong> {{ getLocalizedUnitName(amount.unit_id) }}</p>
             <p><strong>{{ $t('Products.Weight') }}:</strong> {{ amount.weight }}</p>
             <p><strong>{{ $t('Products.amount-Price') }}:</strong> {{ amount.price }} {{ selectedCurrencyLabel }}</p>
+            <p v-if="amount.converted_price != null"><strong>{{ $t('Products.ConvertedPrice') }}:</strong> {{ amount.converted_price }}</p>
+            <p v-if="amount.discounted_price != null"><strong>{{ $t('Products.DiscountedPrice') }}:</strong> {{ amount.discounted_price }}</p>
           </div>
         </template>
 
@@ -376,6 +380,25 @@ const fetchProduct = async () => {
 
     if (productRes.data.status) {
       product.value = productRes.data.data
+
+      // Normalize amounts to include unit_id for display
+      if (Array.isArray(product.value.amounts)) {
+        product.value.amounts = product.value.amounts.map(a => ({
+          ...a,
+          unit_id: a.unit && a.unit.id != null ? Number(a.unit.id) : (a.unit_id != null ? Number(a.unit_id) : null),
+        }))
+      }
+
+      // Normalize discount structure to match template
+      if (product.value.discount) {
+        product.value.discount = {
+          id: product.value.discount.id ?? null,
+          value: parseFloat(product.value.discount.discount_value ?? product.value.discount.value ?? 0),
+          startDate: (product.value.discount.start_date || product.value.discount.startDate || '').toString().split('T')[0] || null,
+          endDate: (product.value.discount.end_date || product.value.discount.endDate || '').toString().split('T')[0] || null,
+          is_active: !!product.value.discount.is_active,
+        }
+      }
 
       // Combine direct attributes and parent attributes_with_values for product.value.all_attributes
       let allAttributes = [];
