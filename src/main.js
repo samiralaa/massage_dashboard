@@ -50,7 +50,7 @@ app.component('fa', FontAwesomeIcon)
 app.mount('#app')
 import "bootstrap/dist/js/bootstrap.js"
 
-axios.defaults.baseURL = 'https://massagebackend.webenia.org' // 🟢 your Laravel domain
+axios.defaults.baseURL = 'https://backend.msgperfumes.com' // 🟢 your Laravel domain
 axios.defaults.withCredentials = true
 
 const csrf = document.querySelector('meta[name="csrf-token"]')

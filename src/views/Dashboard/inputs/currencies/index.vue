@@ -58,7 +58,7 @@
   const currencies = ref([])
   const loading = ref(false)
 
-  const BASE_URL = 'https://massagebackend.webenia.org'
+  const BASE_URL = 'https://backend.msgperfumes.com'
 
   const API_URL = `${BASE_URL}/api/website/currencies`
   
@@ -111,7 +111,7 @@
         }
       )
 
-      const response = await axios.delete(`https://massagebackend.webenia.org/api/currencies/${currency.id}`)
+      const response = await axios.delete(`https://backend.msgperfumes.com/api/currencies/${currency.id}`)
       if (response.data.status) {
         ElMessage.success('Currency deleted successfully')
         await fetchCurrencies()

@@ -17,18 +17,18 @@ export const useCartStore = defineStore('cart', {
 
   actions: {
     async fetchCartCount() {
-      
+
       this.isLoading = true
       try {
         this.error = null
-        const response = await axios.get('https://massagebackend.webenia.org/api/cart-items', {
+        const response = await axios.get('https://backend.msgperfumes.com/api/cart-items', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           }
         })
-        
+
         if (response.data.data?.original?.data) {
           this.cartItems = response.data.data.original.data
           this.cartCount = this.cartItems.length
@@ -54,7 +54,7 @@ export const useCartStore = defineStore('cart', {
     async updateQuantity(itemId, newQuantity) {
       try {
         this.error = null
-        const response = await axios.post(`https://massagebackend.webenia.org/api/cart-items/${itemId}`, {
+        const response = await axios.post(`https://backend.msgperfumes.com/api/cart-items/${itemId}`, {
           quantity: newQuantity
         }, {
           headers: {

@@ -372,7 +372,7 @@ const rules = {
   fragrance_notes: [{ type: 'array', message: lang === 'en' ? 'Fragrance notes must be an array' : 'يجب أن تكون المواطنات العطرية مصفوفة', trigger: 'change' }]
 }
 
-const BASE_URL = 'https://massagebackend.webenia.org'
+const BASE_URL = 'https://backend.msgperfumes.com'
 
 const fetchSelectOptions = async () => {
   try {

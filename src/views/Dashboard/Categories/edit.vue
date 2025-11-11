@@ -104,8 +104,8 @@ export default {
       successMessage: '',
       errorMessage: '',
       loading: false,
-      domain_Img: 'https://massagebackend.webenia.org/public/storage/',
-      BASE_URL: 'https://massagebackend.webenia.org',
+      domain_Img: 'https://backend.msgperfumes.com/public/storage/',
+      BASE_URL: 'https://backend.msgperfumes.com',
     }
   },
   created() {
@@ -140,7 +140,7 @@ export default {
         if (tokenData?.token) {
           axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
         }
-        const response = await axios.get('https://massagebackend.webenia.org/api/brands')
+        const response = await axios.get('https://backend.msgperfumes.com/api/brands')
         if (response.data.status) {
           const data = response.data.data
           this.brands = Array.isArray(data) ? data : [data]
@@ -160,7 +160,7 @@ export default {
           axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
         }
         const id = this.$route.params.id
-        const response = await axios.get(`https://massagebackend.webenia.org/api/categories/${id}`)
+        const response = await axios.get(`https://backend.msgperfumes.com/api/categories/${id}`)
         if (response.data.status && response.data.data) {
           const cat = response.data.data
       
@@ -219,7 +219,7 @@ export default {
       
         
         const id = this.$route.params.id
-        const response = await axios.post(`https://massagebackend.webenia.org/api/categories/${id}`, formData, {
+        const response = await axios.post(`https://backend.msgperfumes.com/api/categories/${id}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

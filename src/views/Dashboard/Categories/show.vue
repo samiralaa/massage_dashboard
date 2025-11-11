@@ -111,7 +111,7 @@ const category = ref(null)
 const loading = ref(false)
 
 
-const BASE_URL = 'https://massagebackend.webenia.org'
+const BASE_URL = 'https://backend.msgperfumes.com'
 
 const API_URL = `${BASE_URL}/api/categories`
 

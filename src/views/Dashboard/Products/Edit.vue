@@ -109,7 +109,7 @@
               <el-col :span="12">
             <el-form-item :label="$t('Products.Unit')" :prop="`amounts.${index}.unit_id`">
               <el-select v-model="amount.unit_id" :placeholder="$t('Products.select-unit')" filterable clearable>
-                <el-option v-for="unit in units" :key="unit.id" :label="unit.name_en" :value="unit.id" />
+                <el-option v-for="unit in units" :key="unit.id" :label="getUnitLabel(unit)" :value="Number(unit.id)" />
               </el-select>
             </el-form-item>
               </el-col>
@@ -258,7 +258,7 @@
 
 
          <!-- Toggle for Amount -->
-        <el-form-item v-if="!form.amounts.length > 0" :label="$t('Products.Needs-Amount')">
+        <el-form-item v-if="form.amounts.length === 0" :label="$t('Products.Needs-Amount')">
           <el-switch v-model="form.amount_required" active-text="Yes" inactive-text="No" dir="ltr" class="mx-3" />
         </el-form-item>
 
@@ -268,7 +268,7 @@
           <!-- Unit -->
           <el-form-item :label="$t('Products.Unit')" prop="unit_id">
             <el-select v-model="form.unit_id" :placeholder="$t('Products.select-unit')" filterable clearable>
-              <el-option v-for="unit in units" :key="unit.id" :label="unit.name_en" :value="unit.id" />
+              <el-option v-for="unit in units" :key="unit.id" :label="getUnitLabel(unit)" :value="Number(unit.id)" />
             </el-select>
           </el-form-item>
 
@@ -397,7 +397,7 @@ import { ElMessageBox } from 'element-plus' // Import ElMessageBox
 const router = useRouter()
 const route = useRoute()
 const formRef = ref(null)
-const BASE_URL = 'https://massagebackend.webenia.org'
+const BASE_URL = 'https://backend.msgperfumes.com'
 const productId = route.params.id
 const loading = ref(false) // Add loading state
 
@@ -740,6 +740,14 @@ const getLocalizedIngredientName = (ingredient) => {
     : (ingredient.name_en || ingredient.name_ar || '')
 }
 
+const getUnitLabel = (unit) => {
+  const lang = localStorage.getItem('lang') || 'en'
+  if (!unit) return ''
+  return lang === 'ar'
+    ? (unit.name_ar || unit.name_en || '')
+    : (unit.name_en || unit.name_ar || '')
+}
+
 const isPercentageValue = (value) => {
   return typeof value === 'string' && value.includes('%')
 }
@@ -871,22 +879,35 @@ const fetchProduct = async () => {
     form.value.price = product.price;
     form.value.category_ar = product.category?.name_ar; // Safely access name_ar
     form.value.category_en = product.category?.name_en; // Safely access name_en
-    form.value.currency_id = product.currency_id;
-    form.value.country_id = product.country_id;
-    form.value.brand_id = product.brand_id;
-    form.value.parent_id = product.parent_id;
+    form.value.brand_id = Number(
+      (product.brand && product.brand.id != null ? product.brand.id : (product.brand_id != null ? product.brand_id : (product.parent && (product.parent.brand_id != null || (product.parent.brand && product.parent.brand.id != null)) ? (product.parent.brand_id ?? product.parent.brand.id) : null)))
+    ) || null;
+    form.value.category_id = Number(
+      (product.category && product.category.id != null ? product.category.id : (product.category_id != null ? product.category_id : (product.parent && (product.parent.category_id != null || (product.parent.category && product.parent.category.id != null)) ? (product.parent.category_id ?? product.parent.category.id) : null)))
+    ) || null;
+    form.value.currency_id = Number(
+      (product.currency && product.currency.id != null ? product.currency.id : (product.currency_id != null ? product.currency_id : (product.parent && (product.parent.currency_id != null || (product.parent.currency && product.parent.currency.id != null)) ? (product.parent.currency_id ?? product.parent.currency.id) : null)))
+    ) || null;
+    form.value.country_id = Number(
+      (product.country && product.country.id != null ? product.country.id : (product.country_id != null ? product.country_id : (product.parent && (product.parent.country_id != null || (product.parent.country && product.parent.country.id != null)) ? (product.parent.country_id ?? product.parent.country.id) : null)))
+    ) || null;
+    form.value.parent_id = Number(product.parent_id != null ? product.parent_id : (product.parent && product.parent.id != null ? product.parent.id : null)) || null;
     // Save originals for showing old values inside selects
     originalCurrencyId.value = product.currency_id;
     originalCountryId.value = product.country_id;
     originalBrandId.value = product.brand_id;
     originalParentId.value = product.parent_id;
     form.value.quantity = product.quantity ?? 1;
-    form.value.amounts = product.amounts?.map(a => ({
-      unit_id: a.unit_id,
-      weight: a.weight,
-      price: a.price,
-      id: a.id // لو احتجت ID في التعديل
-    })) || [];
+    form.value.amounts = product.amounts?.map(a => {
+      const unitIdFromObject = a.unit && a.unit.id != null ? Number(a.unit.id) : null
+      const unitIdFromField = a.unit_id != null ? Number(a.unit_id) : null
+      return {
+        unit_id: unitIdFromObject ?? unitIdFromField,
+        weight: a.weight,
+        price: a.price,
+        id: a.id // لو احتجت ID في التعديل
+      }
+    }) || [];
 
     if (form.value.amounts.length > 0) {
       form.value.price = form.value.amounts[0]?.price ?? form.value.price;
@@ -895,7 +916,10 @@ const fetchProduct = async () => {
     form.value.type = product.type ?? 'product';
     form.value.offer = product.discount ? '1' : '0';
     form.value.offer_price = product.discount ? product.discounted_price : '';
-    form.value.category_id = product.category_id;
+    // Ensure category_id is set if not already from above
+    if (form.value.category_id == null && (product.category_id != null || (product.category && product.category.id != null))) {
+      form.value.category_id = Number(product.category_id != null ? product.category_id : product.category.id);
+    }
     originalCategoryId.value = product.category_id;
     form.value.images = product.images.map(img => ({
       id: img.id,
@@ -1018,7 +1042,7 @@ const submitForm = () => {
     const formData = new FormData()
     const hasAmounts = Array.isArray(form.value.amounts) && form.value.amounts.length > 0
     for (const key in form.value) {
-      if (key === 'images' || key === 'amounts' || key === 'attributes' || key === 'main_ingredients' || key === 'fragrance_notes' || key === 'discount') continue
+      if (key === 'images' || key === 'amounts' || key === 'attributes' || key === 'main_ingredients' || key === 'fragrance_notes' || key === 'discount' || key === 'attribute_ids' || key === 'attribute_values' || key === 'selected_main_ingredient_ids') continue
       const value = form.value[key]
       if (value === null || value === undefined || value === '') continue
       if (key === 'price') {
@@ -1298,8 +1322,8 @@ watch(
 )
 
 onMounted(async() => {
+  await fetchOptions()
   await fetchProduct()
-  fetchOptions()
 })
 
 // Keep top-level price synced to first amount price

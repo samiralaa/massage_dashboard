@@ -11,7 +11,7 @@ import users from './modules/users'
 import favorites from './modules/favorites'
 
 
-export const API_URL = 'https://massagebackend.webenia.org';
+export const API_URL = 'https://backend.msgperfumes.com';
 
 
 const api = axios.create({

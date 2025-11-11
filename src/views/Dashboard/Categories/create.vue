@@ -86,7 +86,7 @@ export default {
           axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
         }
 
-        const response = await axios.get('https://massagebackend.webenia.org/api/brands')
+        const response = await axios.get('https://backend.msgperfumes.com/api/brands')
 
 
         if (response.data.status) {
@@ -132,7 +132,7 @@ export default {
           axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
         }
 
-        const response = await axios.post('https://massagebackend.webenia.org/api/categories', formData, {
+        const response = await axios.post('https://backend.msgperfumes.com/api/categories', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },

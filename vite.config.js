@@ -16,7 +16,7 @@ export default defineConfig({
     proxy: {
       '/api': {
 
-        target: 'https://massagebackend.webenia.org',
+        target: 'https://backend.msgperfumes.com',
 
 
         changeOrigin: true,
@@ -25,7 +25,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '/api'),
         configure: (proxy, options) => {
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            proxyReq.setHeader('origin', 'https://massagebackend.webenia.org');
+            proxyReq.setHeader('origin', 'https://backend.msgperfumes.com');
           });
         }
       }

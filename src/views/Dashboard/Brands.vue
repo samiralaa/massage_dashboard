@@ -21,8 +21,8 @@
             <div class="d-flex align-center brand-name">
               <div class="brand-logo-container" @click="previewImage(row)">
                 <el-avatar :size="120" class="brand-logo">
-                  <el-image v-if="row.images" :src="'https://massagebackend.webenia.org' + '/public/storage/' + row.images[0].path" fit="cover"
-                    class="logo-img" :preview-src-list="['https://massagebackend.webenia.org' + '/public/storage/' + row.images[0].path]" />
+                  <el-image v-if="row.images" :src="'https://backend.msgperfumes.com' + '/public/storage/' + row.images[0].path" fit="cover"
+                    class="logo-img" :preview-src-list="['https://backend.msgperfumes.com' + '/public/storage/' + row.images[0].path]" />
                   <el-icon v-else size="24" color="#909399">
                     <Picture />
                   </el-icon>
@@ -186,7 +186,7 @@ import axios from 'axios'
 // Create axios instance with default config
 const api = axios.create({
 
-  baseURL: 'https://massagebackend.webenia.org',
+  baseURL: 'https://backend.msgperfumes.com',
 
   headers: {
     'Accept': 'application/json',
@@ -415,7 +415,7 @@ export default defineComponent({
 
     const previewImage = (brand) => {
       if (brand.images && brand.images.length > 0) {
-        const imageUrl = `https://massagebackend.webenia.org/public/storage/${brand.images[0].path}`; 
+        const imageUrl = `https://backend.msgperfumes.com/public/storage/${brand.images[0].path}`; 
     
         
         window.open(imageUrl, '_blank')

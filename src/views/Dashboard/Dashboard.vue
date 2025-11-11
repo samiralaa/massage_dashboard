@@ -265,7 +265,7 @@ const updateChart = () => {
 
 const fetchSalesOverview = async () => {
   try {
-    const response = await axios.get('https://massagebackend.webenia.org/api/dashboard/sales-overview');
+    const response = await axios.get('https://backend.msgperfumes.com/api/dashboard/sales-overview');
 
     // الوصول للبيانات الحقيقية بشكل صحيح
     salesOverview.value = response.data.data.original.data;
@@ -328,7 +328,7 @@ const fetchSalesOverview = async () => {
           "Authorization"
         ] = `Bearer ${tokenData.token}`;
         const response = await axios.get(
-          "https://massagebackend.webenia.org/api/dashboard/total-products"
+          "https://backend.msgperfumes.com/api/dashboard/total-products"
         );
 
         if (response.data.status === true) {
@@ -350,7 +350,7 @@ const fetchSalesOverview = async () => {
           "Authorization"
         ] = `Bearer ${tokenData.token}`;
         const response = await axios.get(
-          "https://massagebackend.webenia.org/api/dashboard/total-orders"
+          "https://backend.msgperfumes.com/api/dashboard/total-orders"
         );
 
         if (response.data.status === true) {
@@ -372,7 +372,7 @@ const fetchSalesOverview = async () => {
           "Authorization"
         ] = `Bearer ${tokenData.token}`;
         const response = await axios.get(
-          "https://massagebackend.webenia.org/api/orders/count/new"
+          "https://backend.msgperfumes.com/api/orders/count/new"
         );
 
         if (response.data.status === true) {

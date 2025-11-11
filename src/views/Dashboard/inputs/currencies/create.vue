@@ -61,7 +61,7 @@
   }
   
 
-  const BASE_URL = 'https://massagebackend.webenia.org'
+  const BASE_URL = 'https://backend.msgperfumes.com'
 
   const currencies_API = `${BASE_URL}/api/currencies`
   

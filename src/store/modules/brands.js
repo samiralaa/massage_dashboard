@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 
-const API_URL = 'https://massagebackend.webenia.org'
-const IMAGE_BASE_URL = 'https://massagebackend.webenia.org'
+const API_URL = 'https://backend.msgperfumes.com'
+const IMAGE_BASE_URL = 'https://backend.msgperfumes.com'
 
 
 const state = {

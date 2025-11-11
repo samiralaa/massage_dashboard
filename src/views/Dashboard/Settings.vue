@@ -219,7 +219,7 @@ export default {
   },
   methods: {
     fetchSettings() {
-  axios.get('https://massagebackend.webenia.org/api/settings')
+  axios.get('https://backend.msgperfumes.com/api/settings')
     .then(response => {
       const settingsArray = response.data.data;
       const transformedSettings = {};

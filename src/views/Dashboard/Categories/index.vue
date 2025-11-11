@@ -45,14 +45,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('Categories.Brand')" width="180">
-          <template #default="{ row }">
-            <el-tag v-if="row.brand && (row.brand.name_en || row.brand.name_ar)" size="small" effect="plain">
-              {{ row.brand.name_en || row.brand.name_ar }}
-            </el-tag>
-            <span v-else>N/A</span>
-          </template>
-        </el-table-column>
+     
 
         <el-table-column :label="$t('Categories.DescriptionEn')" min-width="320">
           <template #default="{ row }">
@@ -132,7 +125,7 @@ const loading = ref(false)
 const isMobile = ref(false)
 
 
-const BASE_URL = 'https://massagebackend.webenia.org'
+const BASE_URL = 'https://backend.msgperfumes.com'
 
 const API_URL = `${BASE_URL}/api/categories`
 

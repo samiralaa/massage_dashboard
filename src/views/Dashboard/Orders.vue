@@ -285,7 +285,7 @@ const acceptOrder = async (order) => {
     }
 
     axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
-    const response = await axios.get(`https://massagebackend.webenia.org/api/orders/${order.id}/accept`)
+    const response = await axios.get(`https://backend.msgperfumes.com/api/orders/${order.id}/accept`)
 
     if (response.data.status === true) {
       ElMessage.success('Order accepted successfully')
@@ -307,7 +307,7 @@ const completedOrder = async (order) => {
     }
 
     axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
-    const response = await axios.get(`https://massagebackend.webenia.org/api/orders/${order.id}/complete`)
+    const response = await axios.get(`https://backend.msgperfumes.com/api/orders/${order.id}/complete`)
 
     if (response.data.status === true) {
       ElMessage.success('Order completed successfully')
@@ -429,7 +429,7 @@ const cancelOrder = async (order) => {
     }
 
     axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
-    const response = await axios.post(`https://massagebackend.webenia.org/api/orders/${order.id}/cancel`)
+    const response = await axios.post(`https://backend.msgperfumes.com/api/orders/${order.id}/cancel`)
 
     if (response.data.status === true) {
       ElMessage.success('Order cancelled successfully')
