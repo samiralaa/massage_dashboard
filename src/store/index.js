@@ -48,6 +48,11 @@ export default createStore({
   state: {
     products: [],
     customers: [],
+    customersTotal: 0,
+    customersPerPage: 0,
+    customersCurrentPage: 1,
+    customersLastPage: 1,
+    customersLinks: [],
     brands: [],
     salesData: {
       daily: [],
@@ -65,8 +70,13 @@ export default createStore({
       state.products = products
     },
 
-    SET_CUSTOMERS(state, customers) {
-      state.customers = customers
+    SET_CUSTOMERS(state, payload) {
+      state.customers = payload.data;
+      state.customersTotal = payload.data.total;
+      state.customersPerPage = payload.data.per_page;
+      state.customersCurrentPage = payload.data.current_page;
+      state.customersLastPage = payload.data.last_page;
+      state.customersLinks = payload.data.links;
     },
     SET_BRANDS(state, brands) {
       state.brands = brands
@@ -142,31 +152,26 @@ export default createStore({
       commit('SET_ORDERS', [])
     },
 
-    async fetchCustomers({ commit, state }) {
+    async fetchCustomers({ commit, state }, page = 1) {
       try {
-        if (!state.token) throw new Error('Authentication required')
-        commit('SET_LOADING', true)
-        commit('SET_ERROR', null)
+        if (!state.token) throw new Error('Authentication required');
+        commit('SET_LOADING', true);
+        commit('SET_ERROR', null);
 
-        const tokenData = JSON.parse(localStorage.getItem('tokenData'))
+        const tokenData = JSON.parse(localStorage.getItem('tokenData'));
         if (tokenData?.token) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
+          api.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`;
         }
 
-        const response = await api.get('/api/users')
-        const users = Array.isArray(response.data)
-          ? response.data
-          : response.data.data || response.data.users || []
-
-        commit('SET_CUSTOMERS', users)
-        return users
+        const response = await api.get(`/api/users?page=${page}`);
+        commit('SET_CUSTOMERS', response.data);
       } catch (error) {
-        console.error('Fetch customers error:', error)
-        const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch customers'
-        commit('SET_ERROR', errorMessage)
-        throw error
+        console.error('Fetch customers error:', error);
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch customers';
+        commit('SET_ERROR', errorMessage);
+        throw error;
       } finally {
-        commit('SET_LOADING', false)
+        commit('SET_LOADING', false);
       }
     },
 
@@ -274,7 +279,12 @@ export default createStore({
     totalProducts: state => state.products.length,
     totalCustomers: state => state.customers.length,
     totalBrands: state => state.brands.length,
-    getCustomers: state => state.customers,
+    getCustomers: state => state.customers.data,
+    getCustomersTotal: state => state.customersTotal,
+    getCustomersPerPage: state => state.customersPerPage,
+    getCustomersCurrentPage: state => state.customersCurrentPage,
+    getCustomersLastPage: state => state.customersLastPage,
+    getCustomersLinks: state => state.customersLinks,
     getBrands: state => state.brands,
     isLoading: state => state.loading,
     getError: state => state.error,

@@ -9,11 +9,7 @@
         <el-input v-model="searchQuery" :placeholder="$t('Products.SearchPlaceholder')" :prefix-icon="Search" clearable
           class="search-input" style="max-width: 250px; margin-right: 16px;" />
       </div>
-
-
-
-
-
+      
       <el-card class="products-table  ">
 
         <el-table v-loading="loading" :data="filteredProducts" class="table-responsivew" style="height: 70vh" dir="ltr">
@@ -48,31 +44,46 @@
             </template>
           </el-table-column>
           <el-table-column prop="price" :label="$t('Products.Price')" />
+          <el-table-column :label="$t('Products.Inventory')">
+            <template #default="{ row }">
+              {{ getTotalInventory(row) }}
+            </template>
+          </el-table-column>
           <el-table-column prop="currency.name_en" :label="$t('Products.Currency')" />
           <el-table-column :label="$t('Products.Actions')" width="250">
             <template #default="{ row }">
 
 
 
-              <div class="d-flex flex-column gap-1 align-items-center" dir="ltr">
-                <div class="btn-group  " role="group" aria-label="Basic mixed styles example">
-
-                  <button type="button" class="btn btn-success btn-sm" @click="viewProduct(row.id)">{{
-                    $t('Products.View') }}</button>
-                  <button type="button" class="btn btn-warning btn-sm" @click="editProduct(row)">{{ $t('Products.Edit')
-                    }}</button>
-                  <button type="button" class="btn btn-danger btn-sm" @click="deleteProduct(row)">{{
-                    $t('Products.Delete') }}</button>
-
-                </div>
-                <div class="btn-group  " role="group" aria-label="Basic mixed styles example">
-
-                  <button type="button" class="btn btn-secondary btn-sm" @click="addAmount(row)">{{
-                    $t('Products.addAmount') }}</button>
-                  <button type="button" class="btn btn-info btn-sm" @click="openDiscountDialog(row)">{{
-                    $t('Products.addDiscount') }}</button>
-                </div>
-
+              <div class="icon-actions" dir="ltr" role="group" aria-label="Row actions">
+                <el-tooltip :content="$t('Products.View')" placement="top">
+                  <el-button size="small" circle type="success" :icon="View" @click="viewProduct(row.id)" />
+                </el-tooltip>
+                <el-tooltip :content="$t('Products.Edit')" placement="top">
+                  <el-button size="small" circle type="warning" :icon="Edit" @click="editProduct(row)" />
+                </el-tooltip>
+                <el-tooltip :content="$t('Products.Delete')" placement="top">
+                  <el-button size="small" circle type="danger" :icon="Delete" @click="deleteProduct(row)" />
+                </el-tooltip>
+                <el-dropdown trigger="click" placement="bottom-start" @command="(cmd) => handleAddAction(cmd, row)">
+                  <el-button size="small" class="more-btn" circle :icon="MoreFilled" />
+                  <template #dropdown>
+                    <el-dropdown-menu class="add-menu">
+                      <el-dropdown-item command="add-amount">
+                        <el-icon class="menu-icon success"><Plus /></el-icon>
+                        <span>{{ $t('Products.addAmount') }}</span>
+                      </el-dropdown-item>
+                      <el-dropdown-item command="add-discount">
+                        <el-icon class="menu-icon warning"><Discount /></el-icon>
+                        <span>{{ $t('Products.addDiscount') }}</span>
+                      </el-dropdown-item>
+                      <el-dropdown-item command="increase-inventory">
+                        <el-icon class="menu-icon primary"><Top /></el-icon>
+                        <span>{{ $t('Products.IncreaseInventory') }}</span>
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
               </div>
             </template>
           </el-table-column>
@@ -138,6 +149,20 @@
           </div>
         </template>
       </el-dialog>
+
+      <!-- Increase Inventory Dialog -->
+      <el-dialog v-model="showIncreaseDialog" :title="$t('Products.IncreaseInventory')" width="500px">
+        <el-form :model="increaseForm" label-width="140px">
+          <el-form-item :label="$t('Products.Quantity')">
+            <el-input v-model="increaseForm.quantity" type="number" :placeholder="$t('Products.EnterQuantity')" />
+          </el-form-item>
+        </el-form>
+
+        <template #footer>
+          <el-button @click="showIncreaseDialog = false">{{ $t('Products.cancel') }}</el-button>
+          <el-button type="primary" class="mx-2" @click="submitIncrease">{{ $t('Products.submit') }}</el-button>
+        </template>
+      </el-dialog>
     </div>
   </template>
 
@@ -145,7 +170,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Plus, Edit, Delete, Picture, View, Discount, Search } from '@element-plus/icons-vue'
+import { Plus, Edit, Delete, Picture, View, Discount, Search, Top, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 
@@ -360,6 +385,62 @@ const isMobile = computed(() => {
   return window.innerWidth <= 768
 })
 
+const getTotalInventory = (product) => {
+  const items = Array.isArray(product?.inventory_items) ? product.inventory_items : []
+  return items.reduce((sum, it) => sum + (Number(it?.quantity) || 0), 0)
+}
+
+const handleAddAction = (command, product) => {
+  switch (command) {
+    case 'add-amount':
+      return addAmount(product)
+    case 'add-discount':
+      return openDiscountDialog(product)
+    case 'increase-inventory':
+      return openIncreaseDialog(product)
+  }
+}
+
+// Increase Inventory Logic
+const showIncreaseDialog = ref(false)
+const increaseForm = ref({
+  quantity: ''
+})
+
+const openIncreaseDialog = (product) => {
+  selectedProduct.value = product
+  increaseForm.value = { quantity: '' }
+  showIncreaseDialog.value = true
+}
+
+const submitIncrease = async () => {
+  try {
+    const tokenData = JSON.parse(localStorage.getItem('tokenData'))
+    if (!tokenData || !tokenData.token) {
+      throw new Error('Authentication token not found')
+    }
+    axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
+
+    const payload = {
+      product_id: selectedProduct.value.id,
+      quantity: Number(increaseForm.value.quantity)
+    }
+
+    const res = await axios.post(`${BASE_URL}/api/inventory-items/increase`, payload)
+
+    if (res.data) {
+      ElMessage.success(lang === 'ar' ? 'تم تحديث المخزون' : 'Inventory updated')
+      showIncreaseDialog.value = false
+      await fetchProducts()
+    } else {
+      ElMessage.error(lang === 'ar' ? 'فشل في تحديث المخزون' : 'Failed to update inventory')
+    }
+  } catch (err) {
+    console.error(err)
+    ElMessage.error(lang === 'ar' ? 'حدث خطأ أثناء تحديث المخزون' : 'Error occurred while updating inventory')
+  }
+}
+
 onMounted(() => {
   fetchProducts()
 })
@@ -449,6 +530,56 @@ onMounted(() => {
 
 .el-button:hover {
   filter: brightness(0.95);
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.action-buttons .el-button {
+  border-radius: 9999px;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+/* Dropdown menu styling for Add actions */
+:deep(.add-menu) {
+  min-width: 220px;
+  padding: 8px 0;
+}
+
+:deep(.add-menu .el-dropdown-menu__item) {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+:deep(.add-menu .menu-icon) {
+  font-size: 16px;
+}
+
+:deep(.add-menu .menu-icon.success) {
+  color: #67c23a; /* Element Plus success color */
+}
+
+:deep(.add-menu .menu-icon.warning) {
+  color: #e6a23c; /* Element Plus warning color */
+}
+
+:deep(.add-menu .menu-icon.primary) {
+  color: #409eff; /* Element Plus primary color */
+}
+
+.icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
 }
 
 .el-dialog .el-form-item {

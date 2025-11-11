@@ -59,8 +59,8 @@
         </el-form-item>
 
         <!-- Brand -->
-        <el-form-item label="Brand" prop="brand_id">
-          <el-select v-model="form.brand_id" placeholder="Select Brand" filterable clearable>
+        <el-form-item :label="$t('Products.brand')" prop="brand_id">
+          <el-select v-model="form.brand_id" :placeholder="$t('Products.BrandPlaceholder')" filterable clearable>
             <el-option v-for="brand in brands" :key="brand.id" :label="brand.name_en" :value="brand.id" />
           </el-select>
         </el-form-item>
@@ -111,7 +111,7 @@
           </el-select>
         </el-form-item>
 
-        <!-- Select existing Main Ingredients -->
+        <!-- Select existing Main Ingredients --> 
         <el-form-item :label="$t('Products.SelectExistingMainIngredients')">
           <el-select
             v-model="form.selected_main_ingredient_ids"
@@ -426,10 +426,6 @@ const addFragranceNote = () => {
 }
 
 const removeFragranceNote = (index) => {
-  if (form.value.fragrance_notes.length <= 1) {
-    ElMessage.warning(lang === 'ar' ? 'يجب عليك حفظ ملاحظة عطرية واحدة على الاقل' : 'At least one fragrance note is required.');
-    return;
-  }
   ElMessageBox.confirm(
     lang === 'ar' ? 'سيتم حذف الملاحظة العطرية' : 'The fragrance note will be deleted',
     'Warning',
@@ -521,7 +517,11 @@ const submitForm = () => {
       })
 
       if (res.data.status) {
-        ElMessage.success(lang === 'en' ? 'Product created successfully' : 'تم إنشاء المنتج بنجاح')
+        await ElMessageBox.alert(
+          lang === 'en' ? 'Product created successfully' : 'تم إنشاء المنتج بنجاح',
+          lang === 'en' ? 'Success' : 'نجاح',
+          { type: 'success', confirmButtonText: lang === 'en' ? 'OK' : 'حسناً' }
+        )
         router.push('/products')
       } else {
         throw new Error(res.data.message || 'Failed to create product')

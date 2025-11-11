@@ -10,6 +10,10 @@
           </el-icon>
         </template>
       </el-input>
+      <el-button type="success" @click="handleExportOrders" class="ml-3">
+        <el-icon><Download /></el-icon>
+        <span>{{ $t('orders.export') }}</span>
+      </el-button>
     </div>
 
     <!-- Filter Dropdown -->
@@ -17,11 +21,26 @@
       <el-select v-model="statusFilter" :placeholder="$t('orders.Filter-by-Status')" clearable>
         <el-option v-for="status in orderStatuses" :key="status" :label="status" :value="status" />
       </el-select>
+      <el-date-picker
+        v-model="fromDate"
+        type="date"
+        :placeholder="$t('orders.from')"
+        clearable
+        @change="fetchOrders"
+      />
+      <el-date-picker
+        v-model="toDate"
+        type="date"
+        :placeholder="$t('orders.to')"
+        clearable
+        @change="fetchOrders"
+      />
     </div>
 
     <!-- Orders Table -->
     <el-table v-loading="loading" :data="paginatedOrders" id="orders-table" style="width: 100%" class="orders-table" stripe border>
       <el-table-column prop="id" :label="$t('orders.orderId')" width="120" />
+      <el-table-column prop="invoice_number" :label="$t('orders.invoice')" width="180" />
       <el-table-column prop="ordered_at" :label="$t('orders.orderDate')" width="180">
         <template #default="scope">
           {{ formatDate(scope.row.ordered_at) }}
@@ -171,13 +190,19 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search, View, Close, Refresh ,Select, FolderChecked} from '@element-plus/icons-vue'
+import { Search, View, Close, Refresh ,Select, FolderChecked, Download} from '@element-plus/icons-vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useStore } from 'vuex'
+import * as XLSX from 'xlsx'; // Import xlsx library
+
+const store = useStore()
 
 const orders = ref([])
 const searchQuery = ref('')
 const statusFilter = ref('')
+const fromDate = ref(null)
+const toDate = ref(null)
 const currentPage = ref(1)
 const pageSize = 5
 const showDetails = ref(false)
@@ -200,15 +225,13 @@ const fetchOrders = async () => {
     }
 
     axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
-    const response = await axios.get('https://massagebackend.webenia.org/api/orders')
-
-    if (response.data.status === true) {
-      orders.value = response.data.data
-      console.log('Fetched Orders:', orders.value);
-      
-    } else {
-      throw new Error(response.data.message || 'Failed to fetch orders')
-    }
+    await store.dispatch('orders/fetchOrders', {
+      from: fromDate.value ? fromDate.value.toISOString().split('T')[0] : null,
+      to: toDate.value ? toDate.value.toISOString().split('T')[0] : null,
+    })
+    orders.value = store.getters['orders/getOrders']
+    console.log('Fetched Orders:', orders.value);
+    
   } catch (error) {
     console.error('Error fetching orders:', error)
     ElMessage.error( 'Failed to fetch orders')
@@ -219,10 +242,12 @@ const fetchOrders = async () => {
 
 const filteredOrders = computed(() => {
   return orders.value.filter(order => {
+    const q = (searchQuery.value || '').toString().toLowerCase()
     const matchesSearch =
-      searchQuery.value === '' ||
-      order.id.toString().includes(searchQuery.value.toLowerCase()) ||
-      order.total_price.includes(searchQuery.value.toLowerCase())
+      q === '' ||
+      order.id?.toString().toLowerCase().includes(q) ||
+      order.invoice_number?.toString().toLowerCase().includes(q) ||
+      order.total_price?.toString().toLowerCase().includes(q)
 
     const matchesStatus =
       !statusFilter.value || order.status === statusFilter.value
@@ -422,6 +447,26 @@ const reorder = (order) => {
   // Simulate reorder logic (e.g., add items to cart)
   ElMessage.info('Reordered items from order #' + order.id)
 }
+
+// Removed the backend API call implementation for handleExportOrders
+const handleExportOrders = () => {
+  const data = filteredOrders.value.map(order => ({
+    'Order ID': order.id,
+    'Invoice': order.invoice_number,
+    'User Name': order.user?.name,
+    'User Email': order.user?.email,
+    'Status': order.status,
+    'Payment Method': order.payment_method,
+    'Total Price': `${order.total_price} ${order.currency}`,
+    'Items Count': order.items.sum('quantity'),
+    'Ordered At': formatDate(order.ordered_at),
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+  XLSX.writeFile(workbook, `orders_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
 
 onMounted(() => {
   fetchOrders()

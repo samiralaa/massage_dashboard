@@ -163,7 +163,7 @@
                     </div>
                   </td>
                   <td class="align-middle">
-                    {{ order.address.country.name_en }}
+                    {{ order.address?.country?.name_en }}
                   </td>
                   <td class="align-middle">
                     {{ order.total_price }} {{ order.currency }}

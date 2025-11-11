@@ -316,7 +316,18 @@
     "discount": "Discount",
     "removeDiscount": "Remove Discount",
     "Current": "Current",
-    "Old": "Old"
+    "Old": "Old",
+    "Inventory": "Inventory",
+    "IncreaseInventory": "Increase Inventory",
+    "Warehouse": "Warehouse",
+    "EnterWarehouseId": "Enter warehouse ID",
+    "EnterQuantity": "Enter quantity",
+    "Quantity": "Quantity",
+    "IngredientNameEn": "Ingredient Name (EN)",
+    "IngredientNameAr": "Ingredient Name (AR)",
+    "DropIngredientImage": "Drop ingredient image here or click to upload",
+    "AddFragranceNote": "Add Fragrance Note",
+    "RemoveFragranceNote": "Remove Fragrance Note"
   },
   
   "Footer": {

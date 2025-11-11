@@ -329,7 +329,18 @@
     "discount": "الخصم",
     "removeDiscount": "إزالة الخصم",
     "Current": "الحالي",
-    "Old": "القديم"
+    "Old": "القديم",
+    "Inventory": "المخزون",
+    "IncreaseInventory": "زيادة المخزون",
+    "Warehouse": "المستودع",
+    "EnterWarehouseId": "أدخل رقم المستودع",
+    "EnterQuantity": "أدخل الكمية",
+    "Quantity": "الكمية",
+    "IngredientNameEn": "اسم المكون (إنجليزي)",
+    "IngredientNameAr": "اسم المكون (عربي)",
+    "DropIngredientImage": "أسقط صورة المكون هنا أو اضغط للرفع",
+    "AddFragranceNote": "إضافة ملاحظة عطرية",
+    "RemoveFragranceNote": "إزالة ملاحظة عطرية"
   },
 
   "Footer": {

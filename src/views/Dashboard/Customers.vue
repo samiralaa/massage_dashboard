@@ -4,6 +4,7 @@
       <h2 class="page-title">{{ $t("customers.title") }}</h2>
       <div class="button-group">
         <el-button
+          v-if="isManager"
           type="success"
           class="action-button"
           @click="showCreateDialog"
@@ -34,6 +35,7 @@
 
     <!-- Create User Dialog -->
     <el-dialog
+      v-if="isManager"
       v-model="createDialogVisible"
       :title="$t('customers.addCustomer')"
       width="500px"
@@ -187,16 +189,7 @@
                 :content="$t('customers.editCustomer')"
                 placement="top"
               >
-                <el-button
-                  type="primary"
-                  size="small"
-                  class="action-button"
-                  @click="handleEdit(scope.row)"
-                >
-                  <el-icon>
-                    <Edit />
-                  </el-icon>
-                </el-button>
+              
               </el-tooltip>
               <el-tooltip
                 :content="$t('customers.deleteCustomer')"
@@ -223,6 +216,17 @@
         v-if="!isLoading && usersList.length === 0"
         description="No users found"
       />
+
+      <div v-if="customersTotal > 0" class="pagination-container">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="customersTotal"
+          :page-size="15"
+          :current-page="customersCurrentPage"
+          @current-change="handlePageChange"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -497,7 +501,18 @@ export default defineComponent({
       return types[role] || "info";
     };
 
+    const currentUser = computed(() => store.getters.getUser || store.getters.getProfile || {})
+    const isManager = computed(() => (currentUser.value && currentUser.value.role === 'manager'))
+
     const showCreateDialog = () => {
+      if (!isManager.value) {
+        ElMessage({
+          message: lang === 'en' ? 'Only managers can create users' : 'إنشاء المستخدمين مسموح للمدير فقط',
+          type: 'warning',
+          duration: 3000
+        })
+        return
+      }
       createDialogVisible.value = true;
       createForm.name = "";
       createForm.email = "";
@@ -509,6 +524,14 @@ export default defineComponent({
     };
 
     const handleCreate = async () => {
+      if (!isManager.value) {
+        ElMessage({
+          message: lang === 'en' ? 'Only managers can create users' : 'إنشاء المستخدمين مسموح للمدير فقط',
+          type: 'error',
+          duration: 3000
+        })
+        return
+      }
       if (!createFormRef.value) return;
       createForm.dialing_code = countryCodes[createForm.country_id] || "";
       try {
@@ -559,10 +582,7 @@ const getCountryCode = (id) => {
       createForm.dialing_code = countryCodes[id] || "";
     };
 
-
-
-
-    const loadCustomers = async () => {
+    const loadCustomers = async (page = 1) => {
       try {
         isLoading.value = true;
         error.value = null;
@@ -579,7 +599,7 @@ const getCountryCode = (id) => {
         // Log the request details
 
         // Using Vuex store to load customers
-        await store.dispatch("fetchCustomers");
+        await store.dispatch("fetchCustomers", page);
         usersList.value = store.getters.getCustomers;
       } catch (err) {
         console.error("Error loading customers:", err);
@@ -684,6 +704,13 @@ const getCountryCode = (id) => {
     const clearError = () => {
       error.value = null;
     };
+    const customersCurrentPage = computed(() => store.getters.getCustomersCurrentPage);
+    const customersLastPage = computed(() => store.getters.getCustomersLastPage);
+    const customersTotal = computed(() => store.getters.getCustomersTotal);
+
+    const handlePageChange = (page) => {
+      loadCustomers(page);
+    };
 
     onMounted(() => {
       loadCustomers();
@@ -691,6 +718,7 @@ const getCountryCode = (id) => {
     });
 
     return {
+      isManager,
       usersList,
       isLoading,
       error,
@@ -707,7 +735,11 @@ const getCountryCode = (id) => {
       handleCreate,
       getRoleType,
       countries,
-      getCountryCode
+      getCountryCode,
+      customersCurrentPage,
+      customersLastPage,
+      customersTotal,
+      handlePageChange
     };
   },
 });

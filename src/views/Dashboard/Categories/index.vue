@@ -6,7 +6,16 @@
     </div>
 
     <el-card class="categories-table">
-      <el-table v-loading="loading" :data="categories" style="width: 100%">
+      <div class="table-wrapper" v-show="!isMobile">
+        <el-table
+          v-loading="loading"
+          :data="categories"
+          style="width: 100%"
+          border
+          stripe
+          size="large"
+          :default-sort="{ prop: 'name_en', order: 'ascending' }"
+        >
         <el-table-column :label="$t('Categories.Image')" width="120">
           <template #default="{ row }">
             <el-image v-if="row.images && row.images.length > 0"
@@ -28,25 +37,40 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="name_en" :label="$t('Categories.Categories')" />
+        <el-table-column prop="name_en" :label="$t('Categories.Categories')" min-width="180" show-overflow-tooltip />
 
-        <el-table-column prop="name_ar" :label="$t('Categories.name')">
+        <el-table-column :label="$t('Categories.name')" min-width="180">
           <template #default="{ row }">
-            <div dir="rtl">{{ row.name_ar || 'N/A' }}</div>
+            <div class="clamp-1" dir="rtl">{{ row.name_ar || 'N/A' }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="brand.name_en" :label="$t('Categories.Brand')" />
-
-        <el-table-column prop="description_en" :label="$t('Categories.DescriptionEn')" />
-
-        <el-table-column prop="description_ar" :label="$t('Categories.DescriptionAr')">
+        <el-table-column :label="$t('Categories.Brand')" width="180">
           <template #default="{ row }">
-            <div dir="rtl">{{ row.description_ar || 'N/A' }}</div>
+            <el-tag v-if="row.brand && (row.brand.name_en || row.brand.name_ar)" size="small" effect="plain">
+              {{ row.brand.name_en || row.brand.name_ar }}
+            </el-tag>
+            <span v-else>N/A</span>
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('Categories.Actions')" width="200">
+        <el-table-column :label="$t('Categories.DescriptionEn')" min-width="320">
+          <template #default="{ row }">
+            <el-tooltip :content="row.description_en || 'N/A'" placement="top">
+              <div class="clamp-3">{{ row.description_en || 'N/A' }}</div>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+
+        <el-table-column :label="$t('Categories.DescriptionAr')" min-width="320">
+          <template #default="{ row }">
+            <el-tooltip :content="row.description_ar || 'N/A'" placement="top">
+              <div class="clamp-3" dir="rtl">{{ row.description_ar || 'N/A' }}</div>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+
+        <el-table-column :label="$t('Categories.Actions')" width="200" fixed="right">
           <template #default="{ row }">
             <el-button-group>
 
@@ -56,13 +80,47 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
+      <div class="mobile-list" v-show="isMobile">
+        <div v-if="!categories || categories.length === 0" class="no-data">{{$t('Global.NoData') || 'No data'}}</div>
+        <div v-for="row in categories" :key="row.id" class="mobile-item">
+          <div class="mobile-left">
+            <el-image v-if="row.images && row.images.length > 0"
+              :src="`${BASE_URL}/public/storage/${row.images[0].path}`"
+              fit="cover"
+              class="category-image-mobile">
+              <template #error>
+                <div class="image-error">
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+            </el-image>
+            <div v-else class="image-error">
+              <el-icon><Picture /></el-icon>
+            </div>
+          </div>
+          <div class="mobile-right">
+            <div class="name-row">{{ row.name_en || '—' }}</div>
+            <div class="name-ar" dir="rtl">{{ row.name_ar || '—' }}</div>
+            <div class="brand-row">
+              <el-tag v-if="row.brand && (row.brand.name_en || row.brand.name_ar)" size="small" effect="plain">
+                {{ row.brand.name_en || row.brand.name_ar }}
+              </el-tag>
+            </div>
+            <div class="actions">
+              <el-button type="warning" :icon="Edit" size="small" @click="editCategory(row)">{{ $t('Global.Edit') }}</el-button>
+              <el-button type="danger" :icon="Delete" size="small" @click="deleteCategory(row)">{{ $t('Global.Delete') }}</el-button>
+            </div>
+          </div>
+        </div>
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Edit, Delete, Picture, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -71,6 +129,7 @@ import axios from 'axios'
 const router = useRouter()
 const categories = ref([])
 const loading = ref(false)
+const isMobile = ref(false)
 
 
 const BASE_URL = 'https://massagebackend.webenia.org'
@@ -160,8 +219,18 @@ const deleteCategory = async (category) => {
   }
 }
 
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
+
 onMounted(() => {
   fetchCategories()
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIsMobile)
 })
 </script>
 
@@ -200,5 +269,20 @@ onMounted(() => {
 .image-error .el-icon {
   font-size: 24px;
   color: #909399;
+}
+
+.clamp-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+  max-height: calc(1.5em * 3);
 }
 </style>

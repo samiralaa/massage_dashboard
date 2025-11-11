@@ -9,10 +9,7 @@
       <LanguageSwitcher class="header-item" />
 
       <!-- Notifications -->
-      <div class="notifications">
-        <el-icon><Bell /></el-icon>
-        <span v-if="unreadNotifications" class="notification-badge">{{ unreadNotifications }}</span>
-      </div>
+    
 
       <!-- User Menu -->
       <el-dropdown @command="$emit('navigate', $event)" trigger="click">

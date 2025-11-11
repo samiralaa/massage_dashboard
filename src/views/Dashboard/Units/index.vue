@@ -17,6 +17,22 @@
         </el-table-column>
       </el-table>
     </el-card>
+
+    <!-- Update Unit Dialog -->
+    <el-dialog v-model="showUpdateDialog" :title="$t('input.unites.Edit-Unit') || 'Edit Unit'" width="480px">
+      <el-form :model="updateForm" label-width="120px">
+        <el-form-item :label="$t('input.unites.name-en')">
+          <el-input v-model="updateForm.name_en" :placeholder="$t('input.unites.Please-input-unit')" />
+        </el-form-item>
+        <el-form-item :label="$t('input.unites.name-ar')">
+          <el-input v-model="updateForm.name_ar" :placeholder="$t('input.unites.Please-input-unit')" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showUpdateDialog = false">{{ $t('common.cancel') || 'Cancel' }}</el-button>
+        <el-button type="primary" @click="submitUpdate" :loading="saving">{{ $t('input.unites.update') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -24,9 +40,17 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 
 const units = ref([])
 const loading = ref(false)
+const saving = ref(false)
+const showUpdateDialog = ref(false)
+const updateForm = ref({
+  id: null,
+  name_en: '',
+  name_ar: ''
+})
 
 const BASE_URL = 'https://massagebackend.webenia.org'
 
@@ -66,8 +90,12 @@ onMounted(() => {
 })
 
 const handleUpdate = (unit) => {
-  // Logic to update the unit
-
+  updateForm.value = {
+    id: unit.id,
+    name_en: unit.name_en || '',
+    name_ar: unit.name_ar || ''
+  }
+  showUpdateDialog.value = true
 }
 
 const handleDelete = async (unit) => {
@@ -89,6 +117,41 @@ const handleDelete = async (unit) => {
     console.error('Delete unit error:', error);
   }
 };
+
+const submitUpdate = async () => {
+  if (!updateForm.value.name_en && !updateForm.value.name_ar) {
+    ElMessage.error('Please input unit name')
+    return
+  }
+  try {
+    saving.value = true
+    const tokenData = JSON.parse(localStorage.getItem('tokenData'))
+    if (!tokenData || !tokenData.token) {
+      throw new Error('Authentication token not found')
+    }
+    axios.defaults.headers.common['Authorization'] = `Bearer ${tokenData.token}`
+
+    const payload = {
+      name_en: updateForm.value.name_en,
+      name_ar: updateForm.value.name_ar
+    }
+
+    const response = await axios.post(`${API_URL}/${updateForm.value.id}`, payload)
+
+    if (response.data?.status) {
+      ElMessage.success('Unit updated successfully')
+      showUpdateDialog.value = false
+      await fetchUnits()
+    } else {
+      throw new Error(response.data?.message || 'Failed to update unit')
+    }
+  } catch (error) {
+    console.error('Update unit error:', error)
+    ElMessage.error(error.response?.data?.message || error.message || 'Failed to update unit')
+  } finally {
+    saving.value = false
+  }
+}
 
 </script>
 

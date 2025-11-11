@@ -31,38 +31,47 @@
           <textarea v-model="form.description_ar" required class="form-input form-textarea"></textarea>
         </div>
 
-        <div class="form-group">
-          <label>{{ $t('Categories.Brand') }}</label>
-          <el-select
-            v-model="form.brand_id"
-            :placeholder="$t('Categories.SelectBrand')"
-            filterable
-            clearable
-            class="form-input"
-          >
-            <el-option
-              v-for="brand in brands"
-              :key="brand.id"
-              :label="brand.name_en"
-              :value="brand.id"
-            />
-          </el-select>
-        </div>
-        <div class="form-group">
-          <label>Selected Brand ID</label>
-          <input class="form-input" :value="form.brand_id" readonly />
-        </div>
+     
         <div class="form-group">
           <label>{{ $t('Categories.Image') }}</label>
           <div class="file-input-wrapper">
             <input type="file" @change="onFileChange" accept="image/*" class="form-input file-input" />
           </div>
         </div>
-        <div v-if="imagePreview" class="image-preview-container">
-          <p class="preview-title">{{ $t('Categories.ImagePreview') }}</p>
-          <div class="image-preview">
-            <img :src="imagePreview" alt="Image Preview" />
 
+        <div v-if="originalImageUrl" class="image-preview-container">
+          <p class="preview-title">{{ $t('Categories.CurrentImage') || 'Current Image' }}</p>
+          <div class="image-preview">
+            <el-image
+              :src="originalImageUrl"
+              fit="contain"
+              class="edit-image"
+              :preview-src-list="[originalImageUrl]"
+              :initial-index="0"
+              preview-teleported
+            >
+              <template #error>
+                <div class="image-error"><el-icon><Picture /></el-icon></div>
+              </template>
+            </el-image>
+          </div>
+        </div>
+
+        <div v-if="imagePreview" class="image-preview-container">
+          <p class="preview-title">{{ $t('Categories.ImagePreview') || 'New Image Preview' }}</p>
+          <div class="image-preview">
+            <el-image
+              :src="imagePreview"
+              fit="contain"
+              class="edit-image"
+              :preview-src-list="[imagePreview]"
+              :initial-index="0"
+              preview-teleported
+            >
+              <template #error>
+                <div class="image-error"><el-icon><Picture /></el-icon></div>
+              </template>
+            </el-image>
           </div>
         </div>
         <button type="submit" class="submit-button">{{ $t('Categories.UpdateButton') }}</button>
@@ -74,9 +83,11 @@
 <script>
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { Picture } from '@element-plus/icons-vue'
 
 export default {
   name: 'EditCategory',
+  components: { Picture },
   data() {
     return {
       form: {
@@ -88,11 +99,13 @@ export default {
         image: null,
       },
       imagePreview: null,
+      originalImageUrl: null,
       brands: [],
       successMessage: '',
       errorMessage: '',
       loading: false,
       domain_Img: 'https://massagebackend.webenia.org/public/storage/',
+      BASE_URL: 'https://massagebackend.webenia.org',
     }
   },
   created() {
@@ -100,6 +113,27 @@ export default {
     this.fetchCategory()
   },
   methods: {
+    resolveImageUrl(path) {
+      if (!path) return null
+      // Already absolute URL
+      if (/^https?:\/\//i.test(path)) return path
+      // If it's a storage path like "images/..." ensure we prefix correctly
+      const normalized = path.replace(/^\/+/, '')
+        .replace(/\/{2,}/g, '/') // collapse duplicate slashes inside the path
+      // Prefer public/storage for direct file serving (same as index page)
+      return `${this.BASE_URL}/public/storage/${normalized}`
+    },
+    extractFirstImagePath(cat) {
+      if (!cat) return null
+      // Common shapes
+      if (Array.isArray(cat.images) && cat.images[0]?.path) return cat.images[0].path
+      if (cat.images?.data && Array.isArray(cat.images.data) && cat.images.data[0]?.path) return cat.images.data[0].path
+      if (cat.image?.path) return cat.image.path
+      if (typeof cat.image === 'string') return cat.image
+      if (cat.logo?.path) return cat.logo.path
+      if (typeof cat.image_url === 'string') return cat.image_url
+      return null
+    },
     async fetchBrands() {
       try {
         const tokenData = JSON.parse(localStorage.getItem('tokenData'))
@@ -140,11 +174,8 @@ export default {
             image: null,
           }
   
-          if (cat.images) {
-            this.imagePreview = `${this.domain_Img}${cat.images[0]?.path || ''}`
-            
-            
-          }
+          const firstPath = this.extractFirstImagePath(cat)
+          this.originalImageUrl = this.resolveImageUrl(firstPath)
           
         } else {
           throw new Error(response.data.message || 'Failed to fetch category')
@@ -288,6 +319,19 @@ label {
   max-width: 100%;
   max-height: 200px;
   object-fit: contain;
+}
+.edit-image {
+  width: 100%;
+  max-height: 220px;
+}
+.image-error {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f7fa;
+  border-radius: 4px;
 }
 .submit-button {
   background-color: #8b6b3d;

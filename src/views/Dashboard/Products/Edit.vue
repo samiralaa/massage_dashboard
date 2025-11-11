@@ -136,75 +136,37 @@
           
         </template>
 
-        <!-- Attributes -->
-        <el-divider content-position="left">{{ $t('Products.Attributes') }}</el-divider>
-        <div v-for="(attribute, index) in form.attributes" :key="index" class="attribute-entry">
-          <div class="attribute-header">
-            <span class="attribute-title">{{ $t('Products.Attributes') }} #{{ index + 1 }}</span>
-            <el-button class="attribute-remove" type="danger" text circle :icon="Delete" @click="removeAttribute(index)" />
+        <!-- Optional manual attributes editor (hidden by default to avoid duplication) -->
+        <template v-if="showManualAttributes">
+          <el-divider content-position="left">{{ $t('Products.Attributes') }}</el-divider>
+          <div v-for="(attribute, index) in form.attributes" :key="index" class="attribute-entry">
+            <div class="attribute-header">
+              <span class="attribute-title">{{ $t('Products.Attributes') }} #{{ index + 1 }}</span>
+              <el-button class="attribute-remove" type="danger" text circle :icon="Delete" @click="removeAttribute(index)" />
+            </div>
+            <el-row :gutter="16" class="attribute-fields">
+              <el-col :span="8">
+                <el-form-item :label="$t('Products.NameEn')" :prop="`attributes.${index}.name_en`">
+                  <el-input v-model="attribute.name_en" :placeholder="$t('Products.NameEn')" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item :label="$t('Products.NameAr')" :prop="`attributes.${index}.name_ar`">
+                  <el-input v-model="attribute.name_ar" :placeholder="$t('Products.NameAr')" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item :label="$t('Products.Value')" :prop="`attributes.${index}.value`">
+                  <el-input v-model="attribute.value" :placeholder="$t('Products.Value')" />
+                </el-form-item>
+              </el-col>
+            </el-row>
           </div>
-          <el-row :gutter="16" class="attribute-fields">
-            <el-col :span="8">
-              <el-form-item :label="$t('Products.NameEn')" :prop="`attributes.${index}.name_en`">
-                <el-input v-model="attribute.name_en" :placeholder="$t('Products.NameEn')" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item :label="$t('Products.NameAr')" :prop="`attributes.${index}.name_ar`">
-                <el-input v-model="attribute.name_ar" :placeholder="$t('Products.NameAr')" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item :label="$t('Products.Value')" :prop="`attributes.${index}.value`">
-                <el-input v-model="attribute.value" :placeholder="$t('Products.Value')" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-        <el-button type="primary" plain @click="addAttribute">{{ $t('Products.AddAttribute') }}</el-button>
+          <el-button type="primary" plain @click="addAttribute">{{ $t('Products.AddAttribute') }}</el-button>
+        </template>
 
         <!-- Main Ingredients -->
-        <template v-if="form.main_ingredients.length > 0">
-          <el-divider content-position="left">{{ $t('Products.MainIngredients') }}</el-divider>
-          <div v-for="(ingredient, index) in form.main_ingredients" :key="index" class="ingredient-entry mb-3">
-            <el-row :gutter="20"> <!-- Add el-row for main ingredient fields -->
-              <el-col :span="12">
-                <el-form-item :label="`Main Ingredient Name EN ${index + 1}`" :prop="`main_ingredients.${index}.name_en`">
-                  <el-input v-model="ingredient.name_en" :placeholder="$t('Products.NameEn')" />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item :label="`Main Ingredient Name AR ${index + 1}`" :prop="`main_ingredients.${index}.name_ar`">
-                  <el-input v-model="ingredient.name_ar" :placeholder="$t('Products.NameAr')" />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <!-- Main Ingredient Image Upload -->
-            <el-row :gutter="20"> <!-- Add el-row for image upload -->
-              <el-col :span="24">
-                <div v-if="ingredient.images && ingredient.images.length" class="image-preview-list" style="margin-bottom: 1em;">
-                  <img v-for="(img, imgIdx) in ingredient.images" :key="imgIdx" :src="img.url ? img.url : getImageUrl(img.path)"
-                    alt="Main Ingredient Image" style="max-width: 120px; max-height: 120px; margin-right: 10px; border-radius: 8px;" />
-                </div>
-                <el-form-item :label="$t('Products.Images')" :prop="`main_ingredients.${index}.images`">
-                  <el-upload class="upload-demo" drag action="" :auto-upload="false" :limit="1" :file-list="ingredient.images"
-                    list-type="picture" :on-change="(file, fileList) => handleMainIngredientFileChange(file, fileList, index)"
-                    :on-remove="(file, fileList) => handleMainIngredientRemove(file, fileList, index)">
-                    <i class="el-icon-upload"></i>
-                    <div class="el-upload__text">{{ $t('Products.DropFiles') }}</div>
-                  </el-upload>
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row :gutter="20" class="button-row">
-              <el-col :span="24">
-                <el-button type="danger" @click="removeMainIngredient(index)">{{ $t('Products.RemoveMainIngredient') }}</el-button>
-              </el-col>
-            </el-row>
-          </div>
-        </template>
+     
         <el-button type="primary" @click="addMainIngredient">{{ $t('Products.AddMainIngredient') }}</el-button>
 
         <!-- Fragrance Notes -->
@@ -243,16 +205,16 @@
         <el-button type="primary" @click="addFragranceNote">{{ $t('Products.AddFragranceNote') }}</el-button>
 
 
-        <el-form-item :label="$t('Products.discount')" prop="discount.value">
+        <el-form-item v-if="showDiscountForm" :label="$t('Products.discount')" prop="discount.value">
           <el-switch v-model="form.discount.is_active" active-text="Yes" inactive-text="No" />
         </el-form-item>
 
-        <template v-if="form.discount && form.discount.is_active">
+        <template v-if="showDiscountForm">
           <div class="amount-entry mb-3">
             <el-divider content-position="left">{{ $t('Products.discountInfo') }}</el-divider>
 
 
-            <template v-if="form.discount.is_active">
+            <template v-if="showDiscountForm">
               <el-form-item :label="$t('Products.Discount-Value')" prop="discount.value">
                 <el-input-number v-model="form.discount.value" type="number"     :min="1" :max="99" :placeholder="$t('Products.Discount-Value')" />
               </el-form-item>
@@ -284,7 +246,7 @@
               <el-button
                 type="danger"
                 icon="el-icon-delete"
-                v-if="form.discount.value"
+                v-if="form.discount && (form.discount.value || form.discount.id)"
                 @click="removeDiscount"
               >
                 {{ $t('Products.removeDiscount') }}
@@ -346,45 +308,59 @@
 
         <el-form-item :label="$t('Products.brand')" prop="brand_id">
           <el-select v-model="form.brand_id" filterable clearable :placeholder="$t('Products.SelectBrand')">
-            <el-option v-if="originalBrandId" :label="$t('Products.Old') + ': ' + getBrandNameById(originalBrandId)" :value="originalBrandId" disabled />
             <el-option v-for="brand in brands" :key="brand.id" :label="brand.name_en" :value="brand.id" />
           </el-select>
-          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedBrandName }}</el-tag>
+          <template v-if="selectedBrandName !== productOnlyBrandName">
+            <el-tag size="small" effect="plain" class="current-value">({{$t('Products.Original')}}: {{ productOnlyBrandName }})</el-tag>
+          </template>
         </el-form-item>
+
+        <!-- Brand Image Display -->
+        <div v-if="productBrandImage || productOnlyBrandImage" class="image-preview-list" style="margin-bottom: 1em;">
+          <img v-if="productBrandImage" :src="productBrandImage" alt="Brand Image" style="max-width: 120px; max-height: 120px; margin-right: 10px; border-radius: 8px;" />
+          <template v-if="productBrandImage !== productOnlyBrandImage">
+            <el-tag size="small" effect="plain" class="current-value">({{$t('Products.Original')}} brand: <img :src="productOnlyBrandImage" alt="Original Brand Image" style="max-width: 40px; max-height: 40px; border-radius: 4px;" />)</el-tag>
+          </template>
+        </div>
+
 
             <el-form-item :label="$t('Products.Category')" prop="category_id">
           <el-select v-model="form.category_id" filterable clearable   :placeholder="$t('Products.SelectCategory')">
-            <el-option v-if="originalCategoryId" :label="$t('Products.Old') + ': ' + getCategoryNameById(originalCategoryId)" :value="originalCategoryId" disabled />
             <el-option v-for="cat in categories" :key="cat.id"  :label="cat.name_en || cat.name_ar" :value="cat.id" />
           </el-select>
-          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedCategoryName }}</el-tag>
+          <template v-if="selectedCategoryName !== productOnlyCategoryName">
+            <el-tag size="small" effect="plain" class="current-value">({{$t('Products.Original')}}: {{ productOnlyCategoryName }})</el-tag>
+          </template>
         </el-form-item>
 
         <el-form-item :label="$t('Products.Currency')" prop="currency_id">
           <el-select v-model="form.currency_id" filterable clearable  :placeholder="$t('Products.SelectCurrency')">
-            <el-option v-if="originalCurrencyId" :label="$t('Products.Old') + ': ' + getCurrencyLabelById(originalCurrencyId)" :value="originalCurrencyId" disabled />
             <el-option v-for="curr in activeCurrencies" :key="curr.id" :label="getCurrencyLabel(curr)"
               :value="curr.id" />
           </el-select>
-          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedCurrencyLabel }}</el-tag>
+          <template v-if="selectedCurrencyLabel !== productOnlyCurrencyLabel">
+            <el-tag size="small" effect="plain" class="current-value">({{$t('Products.Original')}}: {{ productOnlyCurrencyLabel }})</el-tag>
+          </template>
         </el-form-item>
 
         <el-form-item :label="$t('Products.Country')" prop="country_id">
           <el-select v-model="form.country_id" filterable clearable :placeholder="$t('Products.SelectCountry')">
-            <el-option v-if="originalCountryId" :label="$t('Products.Old') + ': ' + getCountryNameById(originalCountryId)" :value="originalCountryId" disabled />
             <el-option v-for="country in countries" :key="country.id" :label="country.name_en || country.name_ar"
               :value="country.id" />
           </el-select>
-          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedCountryName }}</el-tag>
+          <template v-if="selectedCountryName !== productOnlyCountryName">
+            <el-tag size="small" effect="plain" class="current-value">({{$t('Products.Original')}}: {{ productOnlyCountryName }})</el-tag>
+          </template>
         </el-form-item>
 
         <el-form-item :label="$t('Products.ParentProduct')" prop="parent_id">
           <el-select v-model="form.parent_id" clearable :placeholder="$t('Products.SelectParentProduct')">
             <el-option :label="$t('Products.None')" :value="null" />
-            <el-option v-if="originalParentId" :label="$t('Products.Old') + ': ' + getParentNameById(originalParentId)" :value="originalParentId" disabled />
             <el-option v-for="parent in parentProducts" :key="parent.id" :label="parent.name_en" :value="parent.id" />
           </el-select>
-          <el-tag size="small" effect="plain" class="current-value">{{ $t('Products.Current') }}: {{ selectedParentProductName }}</el-tag>
+          <template v-if="selectedParentProductName !== productOnlyParentProductName">
+            <el-tag size="small" effect="plain" class="current-value">({{$t('Products.Original')}}: {{ productOnlyParentProductName }})</el-tag>
+          </template>
         </el-form-item>
 
         <!-- Image Upload -->
@@ -475,10 +451,6 @@ const addAmount = () => {
 }
 
 const removeAmount = (index) => {
-  if (form.value.amounts.length <= 1) {
-    ElMessage.warning(localStorage.getItem('lang') === 'ar' ? 'يجب عليك حفظ كمية واحدة على الاقل' : 'At least one amount entry is required.')
-    return ;
-  }
   ElMessageBox.confirm(
     localStorage.getItem('lang') === 'ar' ? 'سيتم حذف الكمية' : 'The amount will be deleted',
     'Warning',
@@ -488,7 +460,9 @@ const removeAmount = (index) => {
       type: 'warning',
     }
   ).then(() => {
-   form.value.amounts.splice(index, 1)
+    const amt = form.value.amounts[index]
+    if (amt && amt.id) removedAmountIds.value.push(amt.id)
+    form.value.amounts.splice(index, 1)
     ElMessage.success(
       localStorage.getItem('lang') === 'ar' ? 'تم حذف الكمية بنجاح' : 'Amount deleted successfully'
     )
@@ -501,8 +475,7 @@ const removeAmount = (index) => {
 const rules = {
   name_en: [{ required: true, message: 'Required', trigger: 'blur' }],
   price: [{ required: true, message: 'Required', trigger: 'blur' }],
-  ['discount.endDate']: [{ required: true, message: 'Required', trigger: 'blur' }],
-  ['discount.startDate']: [{ required: true, message: 'Required', trigger: 'blur' }],
+  // discount fields are optional; validated only when shown
 
 }
 
@@ -516,39 +489,209 @@ const attributes = ref([])
 const mainIngredientsList = ref([])
 const convertedPrice = ref(null)
 const discountedPrice = ref(null)
+const removedAmountIds = ref([]) // Track amounts removed to delete on backend
+const discountDelete = ref(false) // Flag to delete discount
+const discountIdToDelete = ref(null) // Preserve discount id for delete payload
+const showDiscountForm = ref(false) // Control discount form visibility
+const showManualAttributes = ref(false) // Hide manual attributes to avoid duplicate UI
 
 const getCurrencyLabel = (currency) => (localStorage.getItem('lang') || 'en') === 'ar' ? currency.name_ar : currency.name_en
 const activeCurrencies = computed(() => currencies.value.filter(c => !c.is_deleted))
 
-// Computed property for selected brand name
 const selectedBrandName = computed(() => {
-  const brand = brands.value.find(b => b.id === form.value.brand_id);
-  return brand ? ((localStorage.getItem('lang') || 'en') === 'ar' ? brand.name_ar : brand.name_en) : 'N/A';
+
+  const lang = localStorage.getItem('lang') || 'en';
+
+  let brand = brands.value.find(b => b.id === form.value.brand_id);
+
+
+
+  // If not found, fallback to parent's brand
+
+  if (!brand && form.value.parent && form.value.parent.brand) {
+
+    brand = form.value.parent.brand;
+
+  }
+
+
+
+  return brand
+
+    ? (lang === 'ar' ? brand.name_ar || brand.name_en : brand.name_en || brand.name_ar)
+
+    : 'N/A';
+
 });
 
-// Computed property for selected category name
+
+
 const selectedCategoryName = computed(() => {
-  const category = categories.value.find(c => c.id === form.value.category_id);
-  return category ? ((localStorage.getItem('lang') || 'en') === 'ar' ? category.name_ar : category.name_en) : 'N/A';
+
+  const lang = localStorage.getItem('lang') || 'en';
+
+  let category = categories.value.find(c => c.id === form.value.category_id);
+
+
+
+  // Fallback to parent's category
+
+  if (!category && form.value.parent && form.value.parent.category) {
+
+    category = form.value.parent.category;
+
+  }
+
+
+
+  return category
+
+    ? (lang === 'ar' ? category.name_ar || category.name_en : category.name_en || category.name_ar)
+
+    : 'N/A';
+
 });
 
-// Computed property for selected currency label
+
+
 const selectedCurrencyLabel = computed(() => {
-  const currency = activeCurrencies.value.find(c => c.id === form.value.currency_id);
-  return currency ? getCurrencyLabel(currency) : 'N/A';
+
+  const lang = localStorage.getItem('lang') || 'en';
+
+  let currency = activeCurrencies.value.find(c => c.id === form.value.currency_id);
+
+
+
+  // Fallback to parent's currency
+
+  if (!currency && form.value.parent && form.value.parent.currency) {
+
+    currency = form.value.parent.currency;
+
+  }
+
+
+
+  return currency
+
+    ? (lang === 'ar' ? currency.name_ar || currency.name_en : currency.name_en || currency.name_ar)
+
+    : 'N/A';
+
 });
 
-// Computed property for selected country name
+
+
 const selectedCountryName = computed(() => {
-  const country = countries.value.find(c => c.id === form.value.country_id);
-  return country ? ((localStorage.getItem('lang') || 'en') === 'ar' ? country.name_ar : country.name_en) : 'N/A';
+
+  const lang = localStorage.getItem('lang') || 'en';
+
+  let country = countries.value.find(c => c.id === form.value.country_id);
+
+
+
+  // Fallback to parent's country_id
+
+  if (!country && form.value.parent && form.value.parent.country_id) {
+
+    country = countries.value.find(c => c.id === form.value.parent.country_id);
+
+  }
+
+
+
+  return country
+
+    ? (lang === 'ar' ? country.name_ar || country.name_en : country.name_en || country.name_ar)
+
+    : 'N/A';
+
 });
 
-// Computed property for selected parent product name
+
+
 const selectedParentProductName = computed(() => {
-  if (!form.value.parent_id) return 'None';
-  const parentProduct = parentProducts.value.find(p => p.id === form.value.parent_id);
-  return parentProduct ? parentProduct.name_en : 'N/A';
+
+  const parent = form.value.parent;
+
+  if (!parent) return 'None';
+
+  const lang = localStorage.getItem('lang') || 'en';
+
+  return lang === 'ar' ? parent.name_ar || parent.name_en : parent.name_en || parent.name_ar;
+
+});
+
+
+
+const productBrandImage = computed(() => {
+
+  let brand = brands.value.find(b => b.id === form.value.brand_id);
+
+
+
+  // Fallback to parent's brand if not found
+
+  if (!brand && form.value.parent && form.value.parent.brand) {
+
+    brand = form.value.parent.brand;
+
+  }
+
+
+
+  return brand && brand.images && brand.images.length > 0
+
+    ? getImageUrl(brand.images[0].path)
+
+    : null;
+
+});
+
+const productOnlyBrandName = computed(() => {
+  const lang = localStorage.getItem('lang') || 'en';
+  const brand = brands.value.find(b => b.id === form.value.brand_id);
+  return brand
+    ? (lang === 'ar' ? brand.name_ar || brand.name_en : brand.name_en || brand.name_ar)
+    : 'N/A';
+});
+
+const productOnlyCategoryName = computed(() => {
+  const lang = localStorage.getItem('lang') || 'en';
+  const category = categories.value.find(c => c.id === form.value.category_id);
+  return category
+    ? (lang === 'ar' ? category.name_ar || category.name_en : category.name_en || category.name_ar)
+    : 'N/A';
+});
+
+const productOnlyCurrencyLabel = computed(() => {
+  const lang = localStorage.getItem('lang') || 'en';
+  const currency = activeCurrencies.value.find(c => c.id === form.value.currency_id);
+  return currency
+    ? (lang === 'ar' ? currency.name_ar || currency.name_en : currency.name_en || currency.name_ar)
+    : 'N/A';
+});
+
+const productOnlyCountryName = computed(() => {
+  const lang = localStorage.getItem('lang') || 'en';
+  const country = countries.value.find(c => c.id === form.value.country_id);
+  return country
+    ? (lang === 'ar' ? country.name_ar || country.name_en : country.name_en || country.name_ar)
+    : 'N/A';
+});
+
+const productOnlyParentProductName = computed(() => {
+  const parent = parentProducts.value.find(p => p.id === form.value.parent_id);
+  if (!parent) return 'None';
+  const lang = localStorage.getItem('lang') || 'en';
+  return lang === 'ar' ? parent.name_ar || parent.name_en : parent.name_en || parent.name_ar;
+});
+
+const productOnlyBrandImage = computed(() => {
+  const brand = brands.value.find(b => b.id === form.value.brand_id);
+  return brand && brand.images && brand.images.length > 0
+    ? getImageUrl(brand.images[0].path)
+    : null;
 });
 
 // Helpers to get OLD names by id
@@ -699,7 +842,10 @@ const fetchOptions = async () => {
   currencies.value = cur.data.data; // Changed from cur.data to cur.data.data
   countries.value = cou.data.data
   parentProducts.value = parents.data.data
-  brands.value = brand.data.data
+  brands.value = brand.data.data.map(b => ({
+    ...b,
+    logo_path: b.images && b.images.length > 0 ? b.images[0].path : null
+  }));
   units.value = unit.data.data
   attributes.value = attr.data.data || []
   mainIngredientsList.value = Array.isArray(ing.data) ? ing.data : (ing.data?.data || [])
@@ -771,6 +917,7 @@ const fetchProduct = async () => {
           endDate: null,
           is_active: false
         };
+    showDiscountForm.value = !!product.discount
 
     form.value.attributes = product.attributes?.map(attr => ({
       name_en: attr.name_en,
@@ -798,17 +945,31 @@ const fetchProduct = async () => {
       id: note.id // Add this line to capture fragrance note ID
     })) || [];
 
-    // Derive attribute_ids and attribute_values for select UI from existing attributes
-    if (Array.isArray(product.attributes) && product.attributes.length > 0) {
-      form.value.attribute_ids = product.attributes.map(a => a.id)
-      const valuesMap = {}
-      product.attributes.forEach(a => {
-        valuesMap[a.id] = a.value
-      })
-      form.value.attribute_values = valuesMap
+    // Combine direct attributes and parent attributes_with_values
+    let allAttributes = [];
+    if (Array.isArray(product.attributes)) {
+      allAttributes = allAttributes.concat(product.attributes);
+    }
+    if (product.parent && Array.isArray(product.parent.attributes_with_values)) {
+      // Ensure we don't duplicate attributes if they exist in both places
+      const existingAttributeIds = new Set(allAttributes.map(attr => attr.id));
+      const parentAttributesToAdd = product.parent.attributes_with_values.filter(
+        parentAttr => !existingAttributeIds.has(parentAttr.id)
+      );
+      allAttributes = allAttributes.concat(parentAttributesToAdd);
+    }
+
+    // Derive attribute_ids and attribute_values for select UI from all combined attributes
+    if (Array.isArray(allAttributes) && allAttributes.length > 0) {
+      form.value.attribute_ids = allAttributes.map(a => a.id);
+      const valuesMap = {};
+      allAttributes.forEach(a => {
+        valuesMap[a.id] = a.value;
+      });
+      form.value.attribute_values = valuesMap;
     } else {
-      form.value.attribute_ids = []
-      form.value.attribute_values = {}
+      form.value.attribute_ids = [];
+      form.value.attribute_values = {};
     }
 
     // Map selected existing main ingredients by id
@@ -829,7 +990,10 @@ const fetchProduct = async () => {
     ]);
     categories.value = catRes.data.data;
     currencies.value = currRes.data.data; // Changed from currRes.data to currRes.data.data
-    brands.value = brandRes.data.data; // <-- FIXED LINE
+    brands.value = brandRes.data.data.map(b => ({
+      ...b,
+      logo_path: b.images && b.images.length > 0 ? b.images[0].path : null
+    })); // <-- FIXED LINE
   } catch (error) {
     console.error('Error loading product data', error);
   } finally {
@@ -903,23 +1067,40 @@ const submitForm = () => {
         formData.append('existing_images[]', img.id)
       }
     })
-    if (form.value.discount.value) {
+    if (showDiscountForm.value && form.value.discount && form.value.discount.value) {
       formData.append('discount[value]', form.value.discount.value)
       formData.append('discount[startDate]', form.value.discount.startDate)
       formData.append('discount[endDate]', form.value.discount.endDate)
       if (form.value.discount.id) {
         formData.append('discount[id]', form.value.discount.id)
       }
+      // ensure no delete flag
+      formData.append('delete_discount', '0')
+    } else if (discountDelete.value) {
+      // backend accepts either discount[deleted]=true or delete_discount=true
+      formData.append('delete_discount', '1')
+      formData.append('discount[deleted]', '1')
+      if (discountIdToDelete.value) {
+        formData.append('discount[id]', discountIdToDelete.value)
+      }
+    }
+    // Append removed amount ids for deletion
+    if (removedAmountIds.value.length > 0) {
+      removedAmountIds.value.forEach((id, i) => {
+        formData.append(`remove_amount_ids[${i}]`, id)
+      })
     }
     
-    form.value.attributes.forEach((attr, i) => {
-      formData.append(`attributes[${i}][name_en]`, attr.name_en)
-      formData.append(`attributes[${i}][name_ar]`, attr.name_ar)
-      formData.append(`attributes[${i}][value]`, attr.value)
-      if (attr.id) {
-        formData.append(`attributes[${i}][id]`, attr.id)
-      }
-    })
+    if (showManualAttributes.value) {
+      form.value.attributes.forEach((attr, i) => {
+        formData.append(`attributes[${i}][name_en]`, attr.name_en)
+        formData.append(`attributes[${i}][name_ar]`, attr.name_ar)
+        formData.append(`attributes[${i}][value]`, attr.value)
+        if (attr.id) {
+          formData.append(`attributes[${i}][id]`, attr.id)
+        }
+      })
+    }
 
     form.value.main_ingredients.forEach((ing, i) => {
       formData.append(`main_ingredients[${i}][name_en]`, ing.name_en)
@@ -953,8 +1134,14 @@ const submitForm = () => {
     try {
     const token = JSON.parse(localStorage.getItem('tokenData'))?.token
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    await axios.post(`${BASE_URL}/api/products/${productId}?_method=PUT`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-    ElMessage.success('Product updated successfully')
+    // Use method override in body to be compatible with backend
+    formData.append('_method', 'PUT')
+    await axios.post(`${BASE_URL}/api/products/${productId}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    await ElMessageBox.alert(
+      (localStorage.getItem('lang') === 'ar') ? 'تم تحديث المنتج بنجاح' : 'Product updated successfully',
+      (localStorage.getItem('lang') === 'ar') ? 'نجاح' : 'Success',
+      { type: 'success', confirmButtonText: (localStorage.getItem('lang') === 'ar') ? 'حسناً' : 'OK' }
+    )
     router.push('/products')
     } catch (error) {
       console.error('Error submitting form', error); // Added error logging
@@ -975,13 +1162,14 @@ const removeDiscount = () => {
       type: 'warning',
     }
   ).then(() => {
-  form.value.discount = {
-    id: null,
-    value: null,
-    startDate: null,
-    endDate: null,
-    is_active: false
-  };
+    discountDelete.value = true
+    discountIdToDelete.value = form.value.discount?.id || null
+    // Close the discount form in UI but keep object to avoid validation/path errors
+    showDiscountForm.value = false
+    form.value.discount.value = null
+    form.value.discount.startDate = null
+    form.value.discount.endDate = null
+    form.value.discount.is_active = false
     ElMessage.success(
       localStorage.getItem('lang') === 'ar' ? 'تم حذف الخصم بنجاح' : 'Discount deleted successfully'
     );
@@ -1067,10 +1255,6 @@ const addFragranceNote = () => {
 };
 
 const removeFragranceNote = (index) => {
-  if (form.value.fragrance_notes.length <= 1) {
-    ElMessage.warning(localStorage.getItem('lang') === 'ar' ? 'يجب عليك حفظ ملاحظة عطرية واحدة على الاقل' : 'At least one fragrance note is required.');
-    return;
-  }
   ElMessageBox.confirm(
     localStorage.getItem('lang') === 'ar' ? 'سيتم حذف الملاحظة العطرية' : 'The fragrance note will be deleted',
     'Warning',

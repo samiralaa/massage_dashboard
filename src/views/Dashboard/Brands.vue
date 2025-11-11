@@ -63,13 +63,6 @@
         </el-table-column>
 <!-- category_id -->
 
-        <el-table-column prop="category.name_en" :label="$t('Brands.Category')" min-width="150" :resizable="true">
-          <template #default="scope">
-            <div class="brand-text">
-              {{ scope.row.category?.name_en || 'N/A' }}
-            </div>
-          </template>
-        </el-table-column>
 
 <el-table-column :label="$t('Brands.Actions')" width="100" fixed="right">
           <template #default="scope">

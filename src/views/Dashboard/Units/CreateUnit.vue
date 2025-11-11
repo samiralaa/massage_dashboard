@@ -84,7 +84,7 @@ const submitForm = () => {
         if (response.data.status) {
           ElMessage.success('Unit created successfully')
           // Redirect to unit list or detail page
-          router.push('/units/list')
+          router.push('/units')
         } else {
           throw new Error(response.data.message || 'Failed to create unit')
         }

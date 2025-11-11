@@ -27,7 +27,7 @@ export default {
   },
 
   actions: {
-    async fetchOrders({ commit, rootState }) {
+    async fetchOrders({ commit }, { from = null, to = null } = {}) {
       try {
         commit('SET_LOADING', true)
         commit('SET_ERROR', null)
@@ -37,7 +37,16 @@ export default {
           throw new Error('Authentication required')
         }
 
+        const params = {}
+        if (from) {
+          params.from = from
+        }
+        if (to) {
+          params.to = to
+        }
+
         const response = await axios.get(`${API_URL}/api/orders`, {
+          params,
           headers: {
             Authorization: `Bearer ${tokenData.token}`
           }
