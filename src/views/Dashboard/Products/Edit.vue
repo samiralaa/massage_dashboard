@@ -285,7 +285,7 @@
 
         <!-- Price + converted/discounted display -->
         <el-form-item v-if="!form.amounts || form.amounts.length === 0" :label="$t('Products.Price')" prop="price">
-          <el-input v-model="form.price" type="number" :min="1" :placeholder="$t('Products.Price')" />
+          <el-input v-model="form.price" type="number" :min="1" :placeholder="$t('Products.convertedPrice')" />
           <el-tag v-if="convertedPrice !== null" size="small" effect="plain" class="current-value">Converted: {{ convertedPrice }}</el-tag>
           <el-tag v-if="discountedPrice !== null" size="small" type="success" effect="plain" class="current-value">Discounted: {{ discountedPrice }}</el-tag>
         </el-form-item>
