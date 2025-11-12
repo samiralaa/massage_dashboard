@@ -22,7 +22,7 @@ const api = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
     'Access-Control-Allow-Origin': '*'
   },
-  withCredentials: true
+  withCredentials: false
 })
 
 api.interceptors.request.use(config => {
@@ -147,9 +147,21 @@ export default createStore({
     logout({ commit }) {
       commit('SET_TOKEN', null)
       commit('SET_USER', null)
-      commit('SET_CUSTOMERS', [])
+      commit('SET_PROFILE', null)
+      // Reset lists safely to expected shapes
       commit('SET_PRODUCTS', [])
-      commit('SET_ORDERS', [])
+      commit('SET_BRANDS', [])
+      commit('SET_CUSTOMERS', {
+        data: {
+          data: [],
+          total: 0,
+          per_page: 0,
+          current_page: 1,
+          last_page: 1,
+          links: []
+        }
+      })
+      // If you need to clear orders module, dispatch orders/SET_ORDERS via namespaced commit elsewhere
     },
 
     async fetchCustomers({ commit, state }, page = 1) {
@@ -268,6 +280,29 @@ export default createStore({
       } catch (error) {
         console.error('Fetch profile error:', error)
         const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch profile'
+        commit('SET_ERROR', errorMessage)
+        throw error
+      } finally {
+        commit('SET_LOADING', false)
+      }
+    },
+
+    async resetPassword({ commit }, payload) {
+      try {
+        commit('SET_LOADING', true)
+        commit('SET_ERROR', null)
+
+        const body = {
+          email: payload.email,
+          password: payload.password,
+          password_confirmation: payload.password_confirmation
+        }
+
+        const response = await api.post('/api/reset-password', body)
+        return response.data
+      } catch (error) {
+        console.error('Reset password error:', error)
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to reset password'
         commit('SET_ERROR', errorMessage)
         throw error
       } finally {

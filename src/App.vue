@@ -96,7 +96,7 @@ export default {
         case 'settings': router.push('/settings'); break
         case 'logout': 
           await store.dispatch('logout')
-          router.push('/login')
+          router.push('/')
           break
       }
     }

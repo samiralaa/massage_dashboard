@@ -4,7 +4,8 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('../views/Dashboard/Dashboard.vue')
+    component: () => import('../views/Dashboard/Dashboard.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/log',
@@ -83,6 +84,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/Dashboard/Profile.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/currencies',
     name: 'Currencies',
     component: () => import('../views/Dashboard/inputs/currencies/index.vue'),
@@ -127,7 +134,7 @@ router.beforeEach((to, from, next) => {
   const isAdmin = tokenData?.user?.role === 'admin'
 
   if (to.meta.requiresAuth && !tokenData?.token) {
-    next('/login')
+    next('/')
   } else {
     next()
   }

@@ -1004,6 +1004,10 @@ const fetchProduct = async () => {
     // Converted / discounted price from API
     convertedPrice.value = product.converted_price ?? null
     discountedPrice.value = product.discounted_price ?? null
+    // If there are no amounts, show converted price inside the input
+    if ((!Array.isArray(form.value.amounts) || form.value.amounts.length === 0) && convertedPrice.value != null) {
+      form.value.price = Number(convertedPrice.value)
+    }
 
 
     // Fetch categories, currencies, and brands
